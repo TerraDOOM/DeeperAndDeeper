@@ -251,7 +251,20 @@
     },
     { 
       "id": "GreenhouseDay1",
-      "text": [[null, "Le epic placeholder"]],
+      "text": [
+        [null, "Several hours later..."],
+        ["You", "You were not being honest on how much work that would be."],
+        ["Carle", "Oh grow a pair already."],
+        ["You", "Yeah, yeah, you old codger. This should fix food for how long?"],
+        ["Carle", "However long we need, honestly. The condensers don't make a ton of water, but it's enough to keep up minimum sustenance, believe it or not."],
+        ["Carle", "If you wanted a bath, it'd be a different thing, but whatever, there's ice out there. Go mine or something."],
+        ["You", "Not high up on my priorities."],
+        ["Carle", "It should be!"],
+        [null, "You both laugh."],
+        ["You", "In any case, that's a load off my shoulders. I'm hitting the hay."],
+        ["Carle", "See ya tomorrow, cap'n"],
+        ["You", "And you as well."]
+      ],
       "outcome": [["GreenhouseFixed", 1]]
     },
     { 
@@ -260,12 +273,52 @@
     },
     { 
       "id": "Day1AirFixed",
-      "text": [[null, "Le epic placeholder"]],
+      "text": [
+        [null, "Several hours later..."],
+        ["Joe", "Jesus, that's it?"],
+        [null, "The old man crawls out of the filtration system, shaking his hands free of the strange pollen."],
+        ["You", "I-"],
+        [null, "You break into a coughing fit."],
+        ["You", "Sorry... I think so."],
+        ["Joe", "That pollen is awful. I thought it would worsen, but if we had waited..."],
+        [null, "Joe shudders for a second."],
+        ["Joe", "Let's just move on."],
+        ["You", "How long will this last until it needs more fixing?"],
+        ["Joe", "Conservatively? Eight days. Thankfully, the filters can be reused, so it's a maintenance issue."],
+        ["You", "You're saying it's your issue?"],
+        ["Joe", "Ha ha. Yeah, at this point I can handle it myself in the future. Thanks for the help."],
+        ["You", "Just doing my job."],
+        ["Joe", "We all are. All it took was a honest to god crash landing..."],
+        [null, "You chuckle at his jab."],
+        ["You", "Lighten up. It ain't so bad, is it?"],
+        [null, "He doesn't laugh at your joke, staying unusually somber rather than rude."],
+        ["Joe", "I just hope things can get better."],
+        ["Joe", "I'm not sure I believe they will, though."],
+        [null, "You remain silent, unsure of what to say."],
+        ["You", "Right, well..."],
+        [null, "..."],
+        ["Joe", "Nevermind. I'm heading to bed. Sleep well, we'll work early next morning."],
+        ["You", "Right."]
+      ],
       "outcome": [["FiltrationFixed", 1]]
     },
     { 
       "id": "Day1AutoDoc",
-      "text": [[null, "Le epic placeholder"]],
+      "text": [
+        [null, "Several hours later..."],
+        ["You", "After only eight cuts on the machinery is it fixed!"],
+        ["Diedrick", "I warned you that the autodoc had sharp parts."],
+        ["You", "My hands will not forgive you..."],
+        ["Diedrick", "Well, thankfully the machine got fixed before you swore a blood oath."],
+        ["You", "No promises."],
+        ["You", "How necessary was this, actually?"],
+        ["Diedrick", "I'm not sure if Carle has been talking to you about this, but he's got some kind of old injury that needs tending to."],
+        ["You", "Didn't the autodoc work before we landed?"],
+        ["Diedrick", "Are you kidding me? You can't use it in space, the incisions would never heal!"],
+        ["You", "I- but surely they could-"],
+        ["Diedrick", "You're surely not arguing with your onboard doctor on matters of medicine?"],
+        ["You", "...Touché."]
+      ],
       "outcome": [["AutoDocFixed", 1]]
     },
     { 

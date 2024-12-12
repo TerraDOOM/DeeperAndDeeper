@@ -154,12 +154,15 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let first_scene = all_scenes[0].clone();
 
+    let mut initial_events: HashMap<String, isize> = HashMap::new();
+    initial_events.insert("GreenhouseFixed".to_string(), 1);
+
     app.insert_resource(DatingContext {
         all_characters: characters,
         day: 1,
         cursor: 0,
         selected_scene: first_scene,
-        flags: HashMap::new(),
+        flags: initial_events.clone(),
         gathered_mission: vec![],
         scenes: all_scenes,
     });
@@ -685,9 +688,15 @@ fn talking_action(
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
                     for branch in scene {
                         //                            flags: HashMap<String, isize>,
-                        if let Some(flagName) = branch.0 .0 {
-                            if context.flags[&flagName] > branch.0 .1 {
+                        if let Some(flag_name) = branch.0 .0 {
+                            if context.flags.contains_key(&flag_name)
+                                && context.flags[&flag_name] >= branch.0 .1
+                            {
                                 //We fulfil the condition and move on
+                                if branch.1.to_lowercase() == "return" {
+                                    tmp.set(DatingState::Chilling);
+                                    break;
+                                }
                                 for scene in context.scenes.clone() {
                                     if scene.id == branch.1 {
                                         dbg!(context.selected_scene = scene);
@@ -698,6 +707,10 @@ fn talking_action(
                             }
                         } else {
                             //We have a always true branch
+                            if branch.1.to_lowercase() == "return" {
+                                tmp.set(DatingState::Chilling);
+                                break;
+                            }
                             for scene in context.scenes.clone() {
                                 if scene.id == branch.1 {
                                     dbg!(context.selected_scene = scene);

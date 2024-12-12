@@ -3,7 +3,7 @@
 //    picking: Vec<option>,
 //}
 
-use super::{despawn_screen, GameState};
+use super::{GameState, despawn_screen};
 use crate::load;
 use bevy::{
     math::ops,

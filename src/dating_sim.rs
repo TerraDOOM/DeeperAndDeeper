@@ -37,9 +37,7 @@ enum CharactersType {
 
 struct CharactersStatus {
     character: CharactersType,
-    current_dialogue: DialogueOption,
-    favor: usize,
-    alive: bool,
+    current_dialogue: String,
 }
 
 #[derive(Resource)]
@@ -50,11 +48,7 @@ struct DatingContext {
     selected_scene: DatingScene,
     flags: HashMap<String, isize>,
     gathered_mission: Vec<MissionType>,
-}
-
-struct DialogueOption {
-    scene_flag: usize,
-    mission: Option<MissionType>,
+    scenes: Vec<DatingScene>,
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
@@ -122,72 +116,37 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let janitor_joe = CharactersStatus {
         character: CharactersType::Joe,
-        current_dialogue: DialogueOption {
-            scene_flag: 2,
-            mission: Some(MissionType::Water),
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "JoeInit".to_string(),
     };
 
     let cat = CharactersStatus {
         character: CharactersType::Cat,
-        current_dialogue: DialogueOption {
-            scene_flag: 8,
-            mission: None,
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "CatInit".to_string(),
     };
 
     let granny = CharactersStatus {
         character: CharactersType::Jule,
-        current_dialogue: DialogueOption {
-            scene_flag: 3,
-            mission: Some(MissionType::Oil),
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "JuleInit".to_string(),
     };
 
     let twin1 = CharactersStatus {
         character: CharactersType::Fredrick,
-        current_dialogue: DialogueOption {
-            scene_flag: 4,
-            mission: None,
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "FredrickInit".to_string(),
     };
 
     let twin2 = CharactersStatus {
         character: CharactersType::Diedrick,
-        current_dialogue: DialogueOption {
-            scene_flag: 4,
-            mission: None,
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "DiedrickInit".to_string(),
     };
 
     let carly = CharactersStatus {
         character: CharactersType::Carle,
-        current_dialogue: DialogueOption {
-            scene_flag: 4,
-            mission: None,
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "CarleInit".to_string(),
     };
 
     let liv = CharactersStatus {
         character: CharactersType::Liv,
-        current_dialogue: DialogueOption {
-            scene_flag: 4,
-            mission: None,
-        },
-        favor: 20,
-        alive: true,
+        current_dialogue: "LivInit".to_string(),
     };
 
     let characters = vec![janitor_joe, granny, cat, twin1, twin2, carly, liv];
@@ -197,10 +156,11 @@ pub fn dating_sim_plugin(app: &mut App) {
     app.insert_resource(DatingContext {
         all_characters: characters,
         day: 1,
-        cursor: 2,
+        cursor: 0,
         selected_scene: first_scene,
         flags: HashMap::new(),
         gathered_mission: vec![],
+        scenes: all_scenes,
     });
 
     app.init_state::<DatingState>();
@@ -288,22 +248,28 @@ fn on_chill(
         DatingObj,
     ));
 
+    let size = width / 9.0;
+
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.75, 0.2, 0.2), Vec2::new(size, size)),
+        Transform::from_translation(Vec2::new(0.0, -height / 3.0).extend(0.0)),
+        Portrait,
+        DatingObj,
+    ));
+
     for (idx, i) in context.all_characters.iter().enumerate() {
-        let size = width / 9.0;
-
         let portrait = get_portrait(i.character, Vec2::new(size, size), &asset_server);
-
-        let box_position = dbg!(Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0));
-        if let Some(mission_var) = i.current_dialogue.mission {
-            let box_size = Vec2::new(size / 1.5, size / 1.5);
-            let box_position = box_position + Vec2::new(0.0, -150.0);
-            let enc = commands.spawn((
-                Sprite::from_color(Color::srgb(0.75, 0.25, 0.25), box_size),
-                Transform::from_translation(box_position.extend(0.0)),
-                DatingObj,
-                MissionNot,
-            ));
-        };
+        let box_position = Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0);
+        // if let Some(mission_var) = i.current_dialogue {
+        //     let box_size = Vec2::new(size / 1.5, size / 1.5);
+        //     let box_position = box_position + Vec2::new(0.0, -150.0);
+        //     let enc = commands.spawn((
+        //         Sprite::from_color(Color::srgb(0.75, 0.25, 0.25), box_size),
+        //         Transform::from_translation(box_position.extend(0.0)),
+        //         DatingObj,
+        //         MissionNot,
+        //     ));
+        // };
 
         let box_size = Vec2::new(size, size);
         commands
@@ -363,6 +329,7 @@ fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetS
         CharactersType::Carle => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Carly.png"),
+
             ..Default::default()
         },
         CharactersType::Liv => Sprite {
@@ -603,7 +570,7 @@ fn talking_action(
         for (mut textbox, mut text) in &mut query {
             (textbox).0 += 1;
             if (textbox).0 < context.selected_scene.text.len() {
-                let dialogue = dbg!(context.selected_scene.text[(textbox).0].1.clone());
+                let dialogue = context.selected_scene.text[(textbox).0].1.clone();
 
                 *text = Text2d::new(dialogue);
 
@@ -676,6 +643,7 @@ fn talking_action(
                 }
             } else {
                 //We have finished reading
+                dbg!(context.selected_scene.clone());
                 if let Some(mission) = context.selected_scene.mission {
                     context.gathered_mission.push(mission);
                 }
@@ -683,7 +651,7 @@ fn talking_action(
                     println!("Added flag, but not implemented")
                 }
                 if context.selected_scene.choice.is_some() {
-                    tmp.set(DatingState::Choosing);
+                    dbg!(tmp.set(DatingState::Choosing));
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
                 } else {
                     tmp.set(DatingState::Chilling);
@@ -720,24 +688,51 @@ fn cursor_action(
         || keyboard_input.just_pressed(KeyCode::ArrowLeft);
     let right = keyboard_input.just_pressed(KeyCode::KeyD)
         || keyboard_input.just_pressed(KeyCode::ArrowRight);
+    let up =
+        keyboard_input.just_pressed(KeyCode::KeyW) || keyboard_input.just_pressed(KeyCode::ArrowUp);
+    let down = keyboard_input.just_pressed(KeyCode::KeyS)
+        || keyboard_input.just_pressed(KeyCode::ArrowDown);
     let confirm = keyboard_input.just_pressed(KeyCode::Enter)
         || keyboard_input.just_pressed(KeyCode::Space)
         || keyboard_input.just_pressed(KeyCode::KeyZ);
 
     if confirm {
-        tmp.set(DatingState::Talking);
+        if context.cursor == -5 {
+            todo!();
+        } else {
+            let talk_key = context.all_characters[(context.cursor + 3) as usize]
+                .current_dialogue
+                .clone();
+
+            for scene in context.scenes.clone() {
+                if scene.id == talk_key {
+                    dbg!(context.selected_scene = scene);
+                    break;
+                };
+            }
+            tmp.set(DatingState::Talking);
+        }
     }
 
-    if right && context.cursor < 3 {
+    if right && context.cursor < 3 && context.cursor != -5 {
         context.cursor += 1
     } else if left && context.cursor > -3 {
         context.cursor -= 1
+    } else if up && context.cursor == -5 {
+        context.cursor = 0;
+    } else if down && context.cursor != -5 {
+        context.cursor = -5;
     }
 
     for mut transform in &mut query {
         let width = windows.single().resolution.width();
         let height = windows.single().resolution.height();
-
-        transform.translation.x = ((context.cursor as f32) * width / 7.5);
+        if context.cursor != -5 {
+            transform.translation.y = 250.0;
+            transform.translation.x = (context.cursor as f32) * width / 7.5;
+        } else {
+            transform.translation.y = -height / 3.0;
+            transform.translation.x = 0.0;
+        }
     }
 }

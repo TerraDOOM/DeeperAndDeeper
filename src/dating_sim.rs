@@ -21,7 +21,7 @@ enum MissionType {
     Iron,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Copy, Clone)]
 enum CharactersType {
     Joe,
     Jule,
@@ -104,7 +104,16 @@ struct TalkObj;
 struct TextBox(usize);
 
 #[derive(Component)]
+struct NameBox;
+
+#[derive(Component)]
+struct PortraitBox;
+
+#[derive(Component)]
 struct DatingOption;
+
+#[derive(Component)]
+struct ChoiceObj(String);
 
 pub fn dating_sim_plugin(app: &mut App) {
     let _ = load::load_scenes();
@@ -188,11 +197,20 @@ pub fn dating_sim_plugin(app: &mut App) {
         selected_scene: DatingScene {
             id: "1".to_string(),
             text: vec![
-                (None, "This is a placeholder".to_string()),
-                (None, "This is a second placeholder".to_string()),
+                (
+                    Some(CharactersType::Fredrick),
+                    "This is a placeholder".to_string(),
+                ),
+                (
+                    Some(CharactersType::Cat),
+                    "This is a second placeholder".to_string(),
+                ),
             ],
             outcome: None,
-            choice: None,
+            choice: Some((
+                ("I choose 1".to_string(), "choice 1".to_string()),
+                ("I choose 1".to_string(), "choice 1".to_string()),
+            )),
             mission: None,
         },
         flags: vec![],
@@ -212,13 +230,12 @@ pub fn dating_sim_plugin(app: &mut App) {
             cursor_action.run_if(in_state(DatingState::Chilling)),
         );
 
-    //Dialogue
-    // app.add_systems(OnEnter(DatingState::Talking), start_talking)
-    //     .add_systems(
-    //         Update,
-    //         talking_action.run_if(in_state(DatingState::Talking)),
-    //     )
-    //     .add_systems(OnExit(DatingState::Talking), despawn_screen::<TalkObj>);
+    app.add_systems(OnEnter(DatingState::Choosing), on_choosing)
+        .add_systems(Update, choose_move.run_if(in_state(DatingState::Choosing)))
+        .add_systems(
+            OnExit(DatingState::Choosing),
+            (despawn_screen::<ChoiceObj>, despawn_screen::<Cursor>),
+        );
 
     //Choices
     app.add_systems(OnEnter(DatingState::Talking), start_talking)
@@ -287,46 +304,8 @@ fn on_chill(
 
     for (idx, i) in context.all_characters.iter().enumerate() {
         let size = width / 9.0;
-        let portrait = match i.character {
-            CharactersType::Joe => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Janitor Joe-Recovered.png"),
-                ..Default::default()
-            },
-            CharactersType::Jule => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Character_General_Jule.png"),
-                ..Default::default()
-            },
-            CharactersType::Fredrick => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
-                ..Default::default()
-            },
 
-            CharactersType::Diedrick => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
-                ..Default::default()
-            },
-
-            CharactersType::Carle => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Character_Carly.png"),
-                ..Default::default()
-            },
-            CharactersType::Liv => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Character_Liv.png"),
-                ..Default::default()
-            },
-            CharactersType::Cat => Sprite {
-                custom_size: Some(Vec2::new(size, size)),
-                image: asset_server.load("Portraits/Character_cat.png"),
-                ..Default::default()
-            },
-            _ => Sprite::from_color(Color::srgb(0.25, 0.25, 0.75), Vec2::new(size, size)),
-        };
+        let portrait = get_portrait(i.character, Vec2::new(size, size), &asset_server);
 
         let box_position = dbg!(Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0));
         if let Some(mission_var) = i.current_dialogue.mission {
@@ -356,6 +335,49 @@ fn on_chill(
     let text_justification = JustifyText::Center;
 }
 
+fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetServer>) -> Sprite {
+    return match character {
+        CharactersType::Joe => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Janitor Joe-Recovered.png"),
+            ..Default::default()
+        },
+        CharactersType::Jule => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_General_Jule.png"),
+            ..Default::default()
+        },
+        CharactersType::Fredrick => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
+            ..Default::default()
+        },
+
+        CharactersType::Diedrick => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
+            ..Default::default()
+        },
+
+        CharactersType::Carle => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Carly.png"),
+            ..Default::default()
+        },
+        CharactersType::Liv => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Liv.png"),
+            ..Default::default()
+        },
+        CharactersType::Cat => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_cat.png"),
+            ..Default::default()
+        },
+        _ => Sprite::from_color(Color::srgb(0.25, 0.25, 0.75), size),
+    };
+}
+
 fn start_talking(
     mut commands: Commands,
     context: ResMut<DatingContext>,
@@ -380,10 +402,11 @@ fn start_talking(
         ..default()
     };
 
-    let talk_size = Vec2::new(width / 1.6, width / 10.0);
-    let talk_position = Vec2::new(0.0, -150.0);
+    let talk_size = Vec2::new(width / 1.6, height / 5.0);
+    let talk_position = Vec2::new(0.0, -height / 2.5);
 
     let dialogue = context.selected_scene.text[0].1.clone();
+    let person = context.selected_scene.text[0].0;
     commands
         .spawn((
             Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), talk_size),
@@ -402,14 +425,168 @@ fn start_talking(
                 Transform::from_translation(Vec3::Z),
             ));
         });
+
+    //Who is talking
+    if person.is_some() {
+        commands
+            .spawn((
+                Sprite::from_color(
+                    Color::srgb(0.20, 0.3, 0.70),
+                    Vec2::new(width / 4.0, height / 10.0),
+                ),
+                Transform::from_translation(
+                    (talk_position + Vec2::new(-talk_size.y / 2.0, talk_size.y / 2.0)).extend(1.0),
+                ),
+                TalkObj,
+            ))
+            .with_children(|builder| {
+                builder.spawn((
+                    Text2d::new(format!("{:?}", person.unwrap())),
+                    NameBox,
+                    slightly_smaller_text_font.clone(),
+                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                    // Wrap text in the rectangle
+                    TextBounds::from(talk_size),
+                    // ensure the text is drawn on top of the box
+                    Transform::from_translation(Vec3::Z),
+                ));
+            });
+
+        //Look at secy person talking
+        commands.spawn((
+            get_portrait(
+                person.unwrap(),
+                Vec2::new(width / 2.0, width / 2.0),
+                &asset_server,
+            ),
+            Transform::from_translation(Vec2::new(-width / 3.0, 0.0).extend(-1.0)),
+            TalkObj,
+            Portrait,
+        ));
+    }
+}
+
+fn on_choosing(
+    mut commands: Commands,
+    mut context: ResMut<DatingContext>,
+    mut query: Query<&mut Transform, With<Cursor>>,
+    asset_server: Res<AssetServer>,
+    windows: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    let window = windows.single();
+    let width = window.resolution.width();
+    let height = window.resolution.height();
+
+    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let text_font = TextFont {
+        font: font.clone(),
+        font_size: 50.0,
+        ..default()
+    };
+
+    let slightly_smaller_text_font = TextFont {
+        font,
+        font_size: 35.0,
+        ..default()
+    };
+
+    let option_size = Vec2::new(width / 2.0, height / 5.0);
+    let option_position_1 = Vec2::new(0.0, height / 4.0);
+    let option_position_2 = Vec2::new(0.0, -height / 4.0);
+
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.20, 0.7, 0.20), option_size * 1.2),
+        Transform::from_translation(option_position_1.extend(-0.5)),
+        Cursor(0),
+    ));
+
+    commands
+        .spawn((
+            Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
+            Transform::from_translation(option_position_1.extend(0.0)),
+            ChoiceObj("link1".to_string()),
+        ))
+        .with_children(|builder| {
+            builder.spawn((
+                Text2d::new("Option 1"),
+                slightly_smaller_text_font.clone(),
+                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                TextBounds::from(option_size),
+                Transform::from_translation(Vec3::Z),
+            ));
+        });
+    commands
+        .spawn((
+            Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
+            Transform::from_translation(option_position_2.extend(0.0)),
+            ChoiceObj("link2".to_string()),
+        ))
+        .with_children(|builder| {
+            builder.spawn((
+                Text2d::new("Option 2"),
+                slightly_smaller_text_font.clone(),
+                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                TextBounds::from(option_size),
+                Transform::from_translation(Vec3::Z),
+            ));
+        });
+
+    context.cursor = 0;
+}
+
+fn choose_move(
+    time: Res<Time>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<&mut ChoiceObj, With<ChoiceObj>>,
+    mut cursor_query: Query<&mut Transform, With<Cursor>>,
+    mut context: ResMut<DatingContext>,
+    mut tmp: ResMut<NextState<DatingState>>,
+    windows: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    // Consider changing font-size instead of scaling the transform. Scaling a Text2D will scale the
+    // rendered quad, resulting in a pixellated look.
+
+    let down = keyboard_input.just_pressed(KeyCode::KeyS)
+        || keyboard_input.just_pressed(KeyCode::ArrowDown);
+    let up =
+        keyboard_input.just_pressed(KeyCode::KeyW) || keyboard_input.just_pressed(KeyCode::ArrowUp);
+    let confirm = keyboard_input.just_pressed(KeyCode::Enter)
+        || keyboard_input.just_pressed(KeyCode::Space)
+        || keyboard_input.just_pressed(KeyCode::KeyZ);
+
+    if down && context.cursor == 1 {
+        context.cursor = 0;
+    } else if up && context.cursor == 0 {
+        context.cursor = 1;
+    }
+
+    let height = windows.single().resolution.height();
+
+    if confirm {
+        tmp.set(DatingState::Chilling);
+    }
+
+    for mut transform in &mut cursor_query {
+        transform.translation.y = match context.cursor {
+            0 => -height / 4.0,
+            _ => height / 4.0,
+        };
+    }
 }
 
 fn talking_action(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&mut TextBox, &mut Text2d), With<TextBox>>,
+    mut query: Query<
+        (&mut TextBox, &mut Text2d),
+        (With<TextBox>, Without<Portrait>, Without<NameBox>),
+    >,
+    mut name_query: Query<&mut Text2d, (With<NameBox>, Without<TextBox>, Without<Portrait>)>,
+    mut face_query: Query<&mut Sprite, (With<Portrait>, Without<TextBox>, Without<NameBox>)>,
     mut context: ResMut<DatingContext>,
+    asset_server: Res<AssetServer>,
     mut tmp: ResMut<NextState<DatingState>>,
+    windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     let confirm = keyboard_input.just_pressed(KeyCode::Enter)
         || keyboard_input.just_pressed(KeyCode::Space)
@@ -423,7 +600,23 @@ fn talking_action(
             (*textbox).0 += 1;
             if (*textbox).0 < context.selected_scene.text.len() {
                 let dialogue = dbg!(context.selected_scene.text[(*textbox).0 as usize].1.clone());
+                let new_person = context.selected_scene.text[(*textbox).0 as usize]
+                    .0
+                    .clone()
+                    .unwrap();
                 *text = Text2d::new(dialogue);
+                for mut text_box in &mut name_query {
+                    *text_box = Text2d::new(format!("{:?}", new_person));
+                }
+
+                for mut sprite_box in &mut face_query {
+                    let width = windows.single().resolution.width();
+                    *sprite_box = get_portrait(
+                        new_person,
+                        Vec2::new(width / 2.0, width / 2.0),
+                        &asset_server,
+                    );
+                }
             } else {
                 //We have finished reading
                 if let Some(mission) = context.selected_scene.mission {
@@ -433,23 +626,13 @@ fn talking_action(
                     println!("Added flag, but not implemented")
                 }
                 if context.selected_scene.choice.is_some() {
-                    todo!()
+                    tmp.set(DatingState::Choosing);
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
                 } else {
                     tmp.set(DatingState::Chilling);
                 }
             }
         }
-    }
-}
-
-fn animate_translation(
-    time: Res<Time>,
-    mut query: Query<&mut Transform, (With<Text2d>, With<AnimateTranslation>)>,
-) {
-    for mut transform in &mut query {
-        transform.translation.x = 100.0 * ops::sin(time.elapsed_secs()) - 400.0;
-        transform.translation.y = 100.0 * ops::cos(time.elapsed_secs());
     }
 }
 
@@ -465,16 +648,6 @@ fn follow_mouse(
         transform.translation = position.extend(0.0);
     }
 }
-
-fn animate_rotation(
-    time: Res<Time>,
-    mut query: Query<&mut Transform, (With<Text2d>, With<AnimateRotation>)>,
-) {
-    for mut transform in &mut query {
-        transform.rotation = Quat::from_rotation_z(ops::cos(time.elapsed_secs()));
-    }
-}
-
 fn cursor_action(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,

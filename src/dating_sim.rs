@@ -3,7 +3,7 @@
 //    picking: Vec<option>,
 //}
 
-use super::{GameState, despawn_screen};
+use super::{despawn_screen, GameState};
 use crate::load;
 use bevy::{
     math::ops,
@@ -67,6 +67,7 @@ pub struct DatingScene {
     outcome: Option<Vec<(String, isize)>>,
     choice: Option<((String, String), (String, String))>,
     mission: Option<MissionType>,
+    scene: Option<Vec<((Option<String>, isize), String)>>,
 }
 
 #[derive(Component)]
@@ -371,7 +372,7 @@ fn start_talking(
     };
 
     let talk_size = Vec2::new(width / 1.6, height / 5.0);
-    let talk_position = Vec2::new(0.0, -height / 2.5);
+    let talk_position = Vec2::new(width / 8.0, -height / 2.5);
 
     let dialogue = context.selected_scene.text[0].1.clone();
     let person = context.selected_scene.text[0].0;
@@ -429,7 +430,7 @@ fn start_talking(
                 Vec2::new(width / 2.0, width / 2.0),
                 &asset_server,
             ),
-            Transform::from_translation(Vec2::new(-width / 3.0, 0.0).extend(-0.5)),
+            Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
             TalkObj,
             Portrait,
         ));
@@ -463,44 +464,43 @@ fn on_choosing(
     let option_size = Vec2::new(width / 2.0, height / 5.0);
     let option_position_1 = Vec2::new(0.0, height / 4.0);
     let option_position_2 = Vec2::new(0.0, -height / 4.0);
-
-    commands.spawn((
-        Sprite::from_color(Color::srgb(0.20, 0.7, 0.20), option_size * 1.2),
-        Transform::from_translation(option_position_1.extend(-0.5)),
-        Cursor(0),
-    ));
-
-    commands
-        .spawn((
-            Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
-            Transform::from_translation(option_position_1.extend(0.0)),
-            ChoiceObj("link1".to_string()),
-        ))
-        .with_children(|builder| {
-            builder.spawn((
-                Text2d::new("Option 1"),
-                slightly_smaller_text_font.clone(),
-                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                TextBounds::from(option_size),
-                Transform::from_translation(Vec3::Z),
-            ));
-        });
-    commands
-        .spawn((
-            Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
-            Transform::from_translation(option_position_2.extend(0.0)),
-            ChoiceObj("link2".to_string()),
-        ))
-        .with_children(|builder| {
-            builder.spawn((
-                Text2d::new("Option 2"),
-                slightly_smaller_text_font.clone(),
-                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                TextBounds::from(option_size),
-                Transform::from_translation(Vec3::Z),
-            ));
-        });
-
+    if let Some(((label_1, id_1), (label_2, id_2))) = context.selected_scene.choice.clone() {
+        commands.spawn((
+            Sprite::from_color(Color::srgb(0.20, 0.7, 0.20), option_size * 1.2),
+            Transform::from_translation(option_position_1.extend(-0.5)),
+            Cursor(0),
+        ));
+        commands
+            .spawn((
+                Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
+                Transform::from_translation(option_position_1.extend(0.0)),
+                ChoiceObj(id_1),
+            ))
+            .with_children(|builder| {
+                builder.spawn((
+                    Text2d::new(label_1),
+                    slightly_smaller_text_font.clone(),
+                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                    TextBounds::from(option_size),
+                    Transform::from_translation(Vec3::Z),
+                ));
+            });
+        commands
+            .spawn((
+                Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
+                Transform::from_translation(option_position_2.extend(0.0)),
+                ChoiceObj(id_2),
+            ))
+            .with_children(|builder| {
+                builder.spawn((
+                    Text2d::new(label_2),
+                    slightly_smaller_text_font.clone(),
+                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                    TextBounds::from(option_size),
+                    Transform::from_translation(Vec3::Z),
+                ));
+            });
+    }
     context.cursor = 0;
 }
 
@@ -524,21 +524,48 @@ fn choose_move(
         || keyboard_input.just_pressed(KeyCode::Space)
         || keyboard_input.just_pressed(KeyCode::KeyZ);
 
-    if down && context.cursor == 1 {
+    if up && context.cursor == 1 {
         context.cursor = 0;
-    } else if up && context.cursor == 0 {
+    } else if down && context.cursor == 0 {
         context.cursor = 1;
     }
 
     let height = windows.single().resolution.height();
 
     if confirm {
-        tmp.set(DatingState::Chilling);
+        if let Some(choices) = context.selected_scene.choice.clone() {
+            if context.cursor == 0 {
+                if (choices.0 .1).to_lowercase() == "return" {
+                    tmp.set(DatingState::Chilling);
+                } else {
+                    for scene in context.scenes.clone() {
+                        dbg!(scene.id == choices.0 .1);
+                        if scene.id == choices.0 .1 {
+                            context.selected_scene = scene;
+                            tmp.set(DatingState::Talking);
+                            break;
+                        };
+                    }
+                }
+            } else {
+                if (choices.1 .1).to_lowercase() == "return" {
+                    tmp.set(DatingState::Chilling);
+                } else {
+                    for scene in context.scenes.clone() {
+                        if scene.id == choices.1 .1 {
+                            context.selected_scene = scene;
+                            tmp.set(DatingState::Talking);
+                            break;
+                        };
+                    }
+                }
+            }
+        }
     }
 
     for mut transform in &mut cursor_query {
         transform.translation.y = match context.cursor {
-            0 => -height / 4.0,
+            1 => -height / 4.0,
             _ => height / 4.0,
         };
     }
@@ -636,7 +663,9 @@ fn talking_action(
                             Vec2::new(width / 2.0, width / 2.0),
                             &asset_server,
                         ),
-                        Transform::from_translation(Vec2::new(-width / 3.0, 0.0).extend(-0.5)),
+                        Transform::from_translation(
+                            Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5),
+                        ),
                         TalkObj,
                         Portrait,
                     ));
@@ -651,8 +680,33 @@ fn talking_action(
                     println!("Added flag, but not implemented")
                 }
                 if context.selected_scene.choice.is_some() {
-                    dbg!(tmp.set(DatingState::Choosing));
+                    tmp.set(DatingState::Choosing);
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
+                } else if let Some(scene) = context.selected_scene.scene.clone() {
+                    for branch in scene {
+                        //                            flags: HashMap<String, isize>,
+                        if let Some(flagName) = branch.0 .0 {
+                            if context.flags[&flagName] > branch.0 .1 {
+                                //We fulfil the condition and move on
+                                for scene in context.scenes.clone() {
+                                    if scene.id == branch.1 {
+                                        dbg!(context.selected_scene = scene);
+                                        (textbox).0 = 0;
+                                        break;
+                                    };
+                                }
+                            }
+                        } else {
+                            //We have a always true branch
+                            for scene in context.scenes.clone() {
+                                if scene.id == branch.1 {
+                                    dbg!(context.selected_scene = scene);
+                                    (textbox).0 = 0;
+                                    break;
+                                };
+                            }
+                        }
+                    }
                 } else {
                     tmp.set(DatingState::Chilling);
                 }

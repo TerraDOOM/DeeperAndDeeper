@@ -644,7 +644,7 @@ fn talking_action(
                     println!("Added flag, but not implemented")
                 }
                 if context.selected_scene.choice.is_some() {
-                    tmp.set(DatingState::Choosing);
+                    dbg!(tmp.set(DatingState::Choosing));
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
                 } else {
                     tmp.set(DatingState::Chilling);
@@ -692,7 +692,7 @@ fn cursor_action(
 
         for scene in context.scenes.clone() {
             if scene.id == talk_key {
-                context.selected_scene = scene;
+                dbg!(context.selected_scene = scene);
                 break;
             };
         }

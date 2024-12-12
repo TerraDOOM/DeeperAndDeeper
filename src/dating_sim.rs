@@ -3,7 +3,7 @@
 //    picking: Vec<option>,
 //}
 
-use super::{despawn_screen, GameState};
+use super::{GameState, despawn_screen};
 use crate::load;
 use bevy::{
     math::ops,
@@ -19,6 +19,7 @@ enum MissionType {
     Explore,
     Oil,
     Iron,
+    Tutorial,
 }
 
 #[derive(Deserialize, Debug, Copy, Clone)]
@@ -30,7 +31,7 @@ enum CharactersType {
     Diedrick,
     Cat,
     Liv,
-    Main,
+    You,
 }
 
 struct CharactersStatus {
@@ -116,7 +117,7 @@ struct DatingOption;
 struct ChoiceObj(String);
 
 pub fn dating_sim_plugin(app: &mut App) {
-    let _ = load::load_scenes();
+    let all_scenes = load::load_scenes();
 
     let janitor_joe = CharactersStatus {
         character: CharactersType::Joe,
@@ -190,29 +191,13 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let characters = vec![janitor_joe, granny, cat, twin1, twin2, carly, liv];
 
+    let first_scene = all_scenes[0];
+
     app.insert_resource(DatingContext {
         all_characters: characters,
         day: 1,
         cursor: 2,
-        selected_scene: DatingScene {
-            id: "1".to_string(),
-            text: vec![
-                (
-                    Some(CharactersType::Fredrick),
-                    "This is a placeholder".to_string(),
-                ),
-                (
-                    Some(CharactersType::Cat),
-                    "This is a second placeholder".to_string(),
-                ),
-            ],
-            outcome: None,
-            choice: Some((
-                ("I choose 1".to_string(), "choice 1".to_string()),
-                ("I choose 1".to_string(), "choice 1".to_string()),
-            )),
-            mission: None,
-        },
+        selected_scene: first_scene,
         flags: vec![],
         gathered_mission: vec![],
     });

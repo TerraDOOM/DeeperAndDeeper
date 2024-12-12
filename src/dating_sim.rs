@@ -154,12 +154,15 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let first_scene = all_scenes[0].clone();
 
+    let mut initial_events: HashMap<String, isize> = HashMap::new();
+    initial_events.insert("GreenhouseFixed".to_string(), 1);
+
     app.insert_resource(DatingContext {
         all_characters: characters,
         day: 1,
         cursor: 0,
         selected_scene: first_scene,
-        flags: HashMap::new(),
+        flags: initial_events.clone(),
         gathered_mission: vec![],
         scenes: all_scenes,
     });
@@ -683,26 +686,37 @@ fn talking_action(
                     tmp.set(DatingState::Choosing);
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
-                    for branch in scene {
+                    'outer: for branch in scene {
                         //                            flags: HashMap<String, isize>,
-                        if let Some(flagName) = branch.0 .0 {
-                            if context.flags[&flagName] > branch.0 .1 {
+                        if let Some(flag_name) = branch.0 .0 {
+                            if context.flags.contains_key(&flag_name)
+                                && context.flags[&flag_name] >= branch.0 .1
+                            {
                                 //We fulfil the condition and move on
+                                if branch.1.to_lowercase() == "return" {
+                                    tmp.set(DatingState::Chilling);
+                                    break 'outer;
+                                }
                                 for scene in context.scenes.clone() {
                                     if scene.id == branch.1 {
                                         dbg!(context.selected_scene = scene);
                                         (textbox).0 = 0;
-                                        break;
+                                        break 'outer;
                                     };
                                 }
                             }
                         } else {
                             //We have a always true branch
+                            if branch.1.to_lowercase() == "return" {
+                                tmp.set(DatingState::Chilling);
+                                break 'outer;
+                            }
                             for scene in context.scenes.clone() {
                                 if scene.id == branch.1 {
                                     dbg!(context.selected_scene = scene);
                                     (textbox).0 = 0;
-                                    break;
+                                    //start_talking(commands, context, &query, asset_server, windows); TODO
+                                    break 'outer;
                                 };
                             }
                         }

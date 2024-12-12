@@ -32,7 +32,7 @@
         [null, "The crew starts filtering out of the room, out into the living quarters."],
         ["Liv", "...Thanks."]
       ],
-      "choices": [["one hour later...", "TakeStockDay1"], ["KILL YOURSELF", "return"]]
+      "choice": [["one hour later...", "TakeStockDay1"], ["KILL YOURSELF", "return"]]
     },
     { 
       "id": "TakeStockDay1",

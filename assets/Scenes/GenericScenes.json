@@ -104,6 +104,7 @@
         ["Carle", "Just be a man. Tank it. You'll survive."],
         [null, "You can tell this isn't a point you can budge on. Out you go, again. Hope your lungs can take it."]
       ],
+      "outcome": [["FailedTutorial", 1]],
       "mission": "Tutorial"
     },
     { 
@@ -255,7 +256,7 @@
     },
     { 
       "id": "Day1Scan",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "This should tell you where the important objectives are."]]
     },
     { 
       "id": "Day1AirFixed",

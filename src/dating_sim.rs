@@ -346,6 +346,11 @@ fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetS
             image: asset_server.load("Portraits/Character_cat.png"),
             ..Default::default()
         },
+        CharactersType::You => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Player.png"),
+            ..Default::default()
+        },
         _ => Sprite::from_color(Color::srgb(0.25, 0.25, 0.75), size),
     };
 }

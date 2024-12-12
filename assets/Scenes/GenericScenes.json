@@ -32,8 +32,7 @@
         [null, "The crew starts filtering out of the room, out into the living quarters."],
         ["Liv", "...Thanks."]
       ],
-      "choices": [["one hour later...", "TakeStockDay1"], ["KILL YOURSELF", "return"]],
-      "scene": [[1, "TakeStockDay1"]]
+      "choices": [["one hour later...", "TakeStockDay1"], ["KILL YOURSELF", "return"]]
     },
     { 
       "id": "TakeStockDay1",
@@ -248,6 +247,25 @@
         ["You", "Anyway."]
       ],
       "choices": [["Fix the greenhouse!", "GreenhouseDay1"], ["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
+    },
+    { 
+      "id": "GreenhouseDay1",
+      "text": [[null, "Le epic placeholder"]],
+      "outcome": [["GreenhouseFixed", 1]]
+    },
+    { 
+      "id": "Day1Scan",
+      "text": [[null, "Le epic placeholder"]]
+    },
+    { 
+      "id": "Day1AirFixed",
+      "text": [[null, "Le epic placeholder"]],
+      "outcome": [["FiltrationFixed", 1]]
+    },
+    { 
+      "id": "Day1AutoDoc",
+      "text": [[null, "Le epic placeholder"]],
+      "outcome": [["AutoDocFixed", 1]]
     },
     { 
       "id": "Day2Morning",

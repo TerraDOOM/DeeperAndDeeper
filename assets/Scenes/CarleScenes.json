@@ -4,6 +4,7 @@
       "text": [
         ["Carle", "Bro... is anything even real?"],
         ["You", "No bro."]
-      ]
+      ],
+      "scene": [[["GreenhouseFixed", 1], "CarleKilling"], [[null, 0], "return"]]
     }
 ]

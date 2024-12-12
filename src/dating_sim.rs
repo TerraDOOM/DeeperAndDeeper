@@ -686,7 +686,7 @@ fn talking_action(
                     tmp.set(DatingState::Choosing);
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
-                    for branch in scene {
+                    'outer: for branch in scene {
                         //                            flags: HashMap<String, isize>,
                         if let Some(flag_name) = branch.0 .0 {
                             if context.flags.contains_key(&flag_name)
@@ -695,13 +695,13 @@ fn talking_action(
                                 //We fulfil the condition and move on
                                 if branch.1.to_lowercase() == "return" {
                                     tmp.set(DatingState::Chilling);
-                                    break;
+                                    break 'outer;
                                 }
                                 for scene in context.scenes.clone() {
                                     if scene.id == branch.1 {
                                         dbg!(context.selected_scene = scene);
                                         (textbox).0 = 0;
-                                        break;
+                                        break 'outer;
                                     };
                                 }
                             }
@@ -709,13 +709,14 @@ fn talking_action(
                             //We have a always true branch
                             if branch.1.to_lowercase() == "return" {
                                 tmp.set(DatingState::Chilling);
-                                break;
+                                break 'outer;
                             }
                             for scene in context.scenes.clone() {
                                 if scene.id == branch.1 {
                                     dbg!(context.selected_scene = scene);
                                     (textbox).0 = 0;
-                                    break;
+                                    //start_talking(commands, context, &query, asset_server, windows); TODO
+                                    break 'outer;
                                 };
                             }
                         }

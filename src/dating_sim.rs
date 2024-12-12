@@ -215,7 +215,7 @@ fn on_chill(
     let width = window.resolution.width();
     let height = window.resolution.height();
 
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
     let text_font = TextFont {
         font: font.clone(),
         font_size: 50.0,
@@ -224,7 +224,7 @@ fn on_chill(
 
     let slightly_smaller_text_font = TextFont {
         font,
-        font_size: 35.0,
+        font_size: 27.0,
         ..default()
     };
 
@@ -320,13 +320,13 @@ fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetS
         },
         CharactersType::Fredrick => Sprite {
             custom_size: Some(size),
-            image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
+            image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
             ..Default::default()
         },
 
         CharactersType::Diedrick => Sprite {
             custom_size: Some(size),
-            image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
+            image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
             ..Default::default()
         },
 
@@ -366,7 +366,7 @@ fn start_talking(
     let width = window.resolution.width();
     let height = window.resolution.height();
 
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
     let text_font = TextFont {
         font: font.clone(),
         font_size: 50.0,
@@ -375,7 +375,7 @@ fn start_talking(
 
     let slightly_smaller_text_font = TextFont {
         font,
-        font_size: 35.0,
+        font_size: 27.0,
         ..default()
     };
 
@@ -395,9 +395,9 @@ fn start_talking(
                 Text2d::new(dialogue),
                 TextBox(0),
                 slightly_smaller_text_font.clone(),
-                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                 // Wrap text in the rectangle
-                TextBounds::from(talk_size),
+                TextBounds::from(talk_size * 0.85),
                 // ensure the text is drawn on top of the box
                 Transform::from_translation(Vec3::Z),
             ));
@@ -423,9 +423,9 @@ fn start_talking(
                     Text2d::new(format!("{:?}", real_preson)),
                     NameBox,
                     slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                     // Wrap text in the rectangle
-                    TextBounds::from(talk_size),
+                    TextBounds::from(talk_size * 0.85),
                     // ensure the text is drawn on top of the box
                     Transform::from_translation(Vec3::Z),
                 ));
@@ -456,7 +456,7 @@ fn on_choosing(
     let width = window.resolution.width();
     let height = window.resolution.height();
 
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
     let text_font = TextFont {
         font: font.clone(),
         font_size: 50.0,
@@ -465,7 +465,7 @@ fn on_choosing(
 
     let slightly_smaller_text_font = TextFont {
         font,
-        font_size: 35.0,
+        font_size: 27.0,
         ..default()
     };
 
@@ -488,8 +488,8 @@ fn on_choosing(
                 builder.spawn((
                     Text2d::new(label_1),
                     slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                    TextBounds::from(option_size),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                    TextBounds::from(option_size * 0.85),
                     Transform::from_translation(Vec3::Z),
                 ));
             });
@@ -503,8 +503,8 @@ fn on_choosing(
                 builder.spawn((
                     Text2d::new(label_2),
                     slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                    TextBounds::from(option_size),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                    TextBounds::from(option_size * 0.85),
                     Transform::from_translation(Vec3::Z),
                 ));
             });
@@ -616,7 +616,7 @@ fn talking_action(
                     commands.entity(entity).despawn_recursive();
                 }
 
-                let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+                let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
                 let text_font = TextFont {
                     font: font.clone(),
                     font_size: 50.0,
@@ -625,7 +625,7 @@ fn talking_action(
 
                 let slightly_smaller_text_font = TextFont {
                     font,
-                    font_size: 35.0,
+                    font_size: 27.0,
                     ..default()
                 };
 
@@ -656,9 +656,9 @@ fn talking_action(
                                 Text2d::new(format!("{:?}", new_person)),
                                 NameBox,
                                 slightly_smaller_text_font.clone(),
-                                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                                TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                                 // Wrap text in the rectangle
-                                TextBounds::from(talk_size),
+                                TextBounds::from(talk_size * 0.85),
                                 // ensure the text is drawn on top of the box
                                 Transform::from_translation(Vec3::Z),
                             ));

@@ -12,6 +12,7 @@ use bevy::{
     window::PrimaryWindow,
 };
 use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 enum MissionType {
@@ -47,7 +48,7 @@ struct DatingContext {
     day: usize,
     cursor: isize,
     selected_scene: DatingScene,
-    flags: Vec<(String, isize)>,
+    flags: HashMap<String, isize>,
     gathered_mission: Vec<MissionType>,
 }
 
@@ -198,7 +199,7 @@ pub fn dating_sim_plugin(app: &mut App) {
         day: 1,
         cursor: 2,
         selected_scene: first_scene,
-        flags: vec![],
+        flags: HashMap::new(),
         gathered_mission: vec![],
     });
 
@@ -277,11 +278,11 @@ fn on_chill(
         DatingObj,
     ));
 
-    let cursor_size = Vec2::new(width / 10.0, width / 10.0);
-    let cursor_position = Vec2::new(0.0, 0.0);
+    let cursor_size = Vec2::new(width / 8.0, width / 8.0);
+    let cursor_position = Vec2::new(0.0, 250.0);
     let enc = commands.spawn((
         Sprite::from_color(Color::srgb(0.25, 0.75, 0.25), cursor_size),
-        Transform::from_translation(cursor_position.extend(0.0)),
+        Transform::from_translation(cursor_position.extend(-0.1)),
         Cursor(0),
         Portrait,
         DatingObj,
@@ -316,21 +317,20 @@ fn on_chill(
                 builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
             });
 
-        death_flag = context.flags.contains((i.character, _));
-        if (death_flag < 0) {
-            //They are dead
-            let box_size = Vec2::new(size, size);
-            commands
-                .spawn((
-                    Sprite::from_color(Color::srgb(0.0, 0.0, 0.0), box_size * 0.9),
-                    Transform::from_translation(box_position.extend(3.0)),
-                    Portrait,
-                    DatingObj,
-                ))
-                .with_children(|builder| {
-                    builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
-                });
-        }
+        // if let death_flag = context.flags.contains_key(i.character); //
+        // if (death_flag < 0) {
+        //     //They are dead
+        //     let box_size = Vec2::new(size, size);
+        //     commands
+        //         .spawn((
+        //             Sprite::from_color(Color::srgb(0.0, 0.0, 0.0), box_size * 0.9),
+        //             Transform::from_translation(box_position.extend(3.0)),
+        //             Portrait,
+        //             DatingObj,
+        //         ))
+        //         .with_children(|builder| {
+        //             builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
+        //         });
     }
 
     let text_justification = JustifyText::Center;
@@ -711,6 +711,7 @@ fn cursor_action(
     mut query: Query<&mut Transform, With<Cursor>>,
     mut context: ResMut<DatingContext>,
     mut tmp: ResMut<NextState<DatingState>>,
+    windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     // Consider changing font-size instead of scaling the transform. Scaling a Text2D will scale the
     // rendered quad, resulting in a pixellated look.
@@ -727,9 +728,16 @@ fn cursor_action(
         tmp.set(DatingState::Talking);
     }
 
-    context.cursor += -(left as isize) + right as isize;
+    if right && context.cursor < 3 {
+        context.cursor += 1
+    } else if left && context.cursor > -3 {
+        context.cursor -= 1
+    }
 
     for mut transform in &mut query {
-        transform.translation.x = (context.cursor * 180) as f32;
+        let width = windows.single().resolution.width();
+        let height = windows.single().resolution.height();
+
+        transform.translation.x = ((context.cursor as f32) * width / 7.5);
     }
 }

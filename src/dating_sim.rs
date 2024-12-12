@@ -3,7 +3,7 @@
 //    picking: Vec<option>,
 //}
 
-use super::{despawn_screen, GameState};
+use super::{GameState, despawn_screen};
 use crate::load;
 use bevy::{
     math::ops,
@@ -19,6 +19,7 @@ enum MissionType {
     Explore,
     Oil,
     Iron,
+    Tutorial,
 }
 
 #[derive(Deserialize, Debug, Copy, Clone)]
@@ -30,7 +31,7 @@ enum CharactersType {
     Diedrick,
     Cat,
     Liv,
-    Main,
+    You,
 }
 
 struct CharactersStatus {
@@ -64,7 +65,7 @@ enum DatingState {
     Choosing,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct DatingScene {
     id: String,
     text: Vec<(Option<CharactersType>, String)>,
@@ -116,7 +117,7 @@ struct DatingOption;
 struct ChoiceObj(String);
 
 pub fn dating_sim_plugin(app: &mut App) {
-    let _ = load::load_scenes();
+    let all_scenes = load::load_scenes();
 
     let janitor_joe = CharactersStatus {
         character: CharactersType::Joe,
@@ -190,29 +191,13 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let characters = vec![janitor_joe, granny, cat, twin1, twin2, carly, liv];
 
+    let first_scene = all_scenes[0].clone();
+
     app.insert_resource(DatingContext {
         all_characters: characters,
         day: 1,
         cursor: 2,
-        selected_scene: DatingScene {
-            id: "1".to_string(),
-            text: vec![
-                (
-                    Some(CharactersType::Fredrick),
-                    "This is a placeholder".to_string(),
-                ),
-                (
-                    Some(CharactersType::Cat),
-                    "This is a second placeholder".to_string(),
-                ),
-            ],
-            outcome: None,
-            choice: Some((
-                ("I choose 1".to_string(), "choice 1".to_string()),
-                ("I choose 1".to_string(), "choice 1".to_string()),
-            )),
-            mission: None,
-        },
+        selected_scene: first_scene,
         flags: vec![],
         gathered_mission: vec![],
     });
@@ -330,6 +315,22 @@ fn on_chill(
             .with_children(|builder| {
                 builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
             });
+
+        death_flag = context.flags.contains((i.character, _));
+        if (death_flag < 0) {
+            //They are dead
+            let box_size = Vec2::new(size, size);
+            commands
+                .spawn((
+                    Sprite::from_color(Color::srgb(0.0, 0.0, 0.0), box_size * 0.9),
+                    Transform::from_translation(box_position.extend(3.0)),
+                    Portrait,
+                    DatingObj,
+                ))
+                .with_children(|builder| {
+                    builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
+                });
+        }
     }
 
     let text_justification = JustifyText::Center;
@@ -410,7 +411,7 @@ fn start_talking(
     commands
         .spawn((
             Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), talk_size),
-            Transform::from_translation(talk_position.extend(0.0)),
+            Transform::from_translation(talk_position.extend(1.0)),
             TalkObj,
         ))
         .with_children(|builder| {
@@ -427,7 +428,7 @@ fn start_talking(
         });
 
     //Who is talking
-    if person.is_some() {
+    if let Some(real_preson) = person {
         commands
             .spawn((
                 Sprite::from_color(
@@ -435,13 +436,15 @@ fn start_talking(
                     Vec2::new(width / 4.0, height / 10.0),
                 ),
                 Transform::from_translation(
-                    (talk_position + Vec2::new(-talk_size.y / 2.0, talk_size.y / 2.0)).extend(1.0),
+                    (talk_position
+                        + Vec2::new(-talk_size.y / 2.0, talk_size.y / 2.0 + height / 20.0))
+                    .extend(1.0),
                 ),
                 TalkObj,
             ))
             .with_children(|builder| {
                 builder.spawn((
-                    Text2d::new(format!("{:?}", person.unwrap())),
+                    Text2d::new(format!("{:?}", real_preson)),
                     NameBox,
                     slightly_smaller_text_font.clone(),
                     TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
@@ -452,14 +455,14 @@ fn start_talking(
                 ));
             });
 
-        //Look at secy person talking
+        //Look at sexy person talking
         commands.spawn((
             get_portrait(
-                person.unwrap(),
+                real_preson,
                 Vec2::new(width / 2.0, width / 2.0),
                 &asset_server,
             ),
-            Transform::from_translation(Vec2::new(-width / 3.0, 0.0).extend(-1.0)),
+            Transform::from_translation(Vec2::new(-width / 3.0, 0.0).extend(-0.5)),
             TalkObj,
             Portrait,
         ));
@@ -576,13 +579,14 @@ fn choose_move(
 
 fn talking_action(
     time: Res<Time>,
+    mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<
         (&mut TextBox, &mut Text2d),
         (With<TextBox>, Without<Portrait>, Without<NameBox>),
     >,
-    mut name_query: Query<&mut Text2d, (With<NameBox>, Without<TextBox>, Without<Portrait>)>,
-    mut face_query: Query<&mut Sprite, (With<Portrait>, Without<TextBox>, Without<NameBox>)>,
+    mut name_query: Query<Entity, (With<NameBox>, Without<TextBox>)>,
+    mut face_query: Query<Entity, With<Portrait>>,
     mut context: ResMut<DatingContext>,
     asset_server: Res<AssetServer>,
     mut tmp: ResMut<NextState<DatingState>>,
@@ -597,25 +601,78 @@ fn talking_action(
         tmp.set(DatingState::Chilling);
     } else if confirm {
         for (mut textbox, mut text) in &mut query {
-            (*textbox).0 += 1;
-            if (*textbox).0 < context.selected_scene.text.len() {
-                let dialogue = dbg!(context.selected_scene.text[(*textbox).0 as usize].1.clone());
-                let new_person = context.selected_scene.text[(*textbox).0 as usize]
-                    .0
-                    .clone()
-                    .unwrap();
+            (textbox).0 += 1;
+            if (textbox).0 < context.selected_scene.text.len() {
+                let dialogue = dbg!(context.selected_scene.text[(textbox).0].1.clone());
+
                 *text = Text2d::new(dialogue);
-                for mut text_box in &mut name_query {
-                    *text_box = Text2d::new(format!("{:?}", new_person));
+
+                for entity in &mut name_query {
+                    commands.entity(entity).despawn_recursive();
+                }
+                for entity in &mut face_query {
+                    commands.entity(entity).despawn_recursive();
                 }
 
-                for mut sprite_box in &mut face_query {
-                    let width = windows.single().resolution.width();
-                    *sprite_box = get_portrait(
-                        new_person,
-                        Vec2::new(width / 2.0, width / 2.0),
-                        &asset_server,
-                    );
+                let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+                let text_font = TextFont {
+                    font: font.clone(),
+                    font_size: 50.0,
+                    ..default()
+                };
+
+                let slightly_smaller_text_font = TextFont {
+                    font,
+                    font_size: 35.0,
+                    ..default()
+                };
+
+                if let Some(new_person) = context.selected_scene.text[(*textbox).0].0.clone() {
+                    let window = windows.single();
+                    let width = window.resolution.width();
+                    let height = window.resolution.height();
+                    let talk_size = Vec2::new(width / 1.6, height / 5.0);
+                    let talk_position = Vec2::new(0.0, -height / 2.5);
+                    commands
+                        .spawn((
+                            Sprite::from_color(
+                                Color::srgb(0.20, 0.3, 0.70),
+                                Vec2::new(width / 4.0, height / 10.0),
+                            ),
+                            Transform::from_translation(
+                                (talk_position
+                                    + Vec2::new(
+                                        -talk_size.y / 2.0,
+                                        talk_size.y / 2.0 + height / 20.0,
+                                    ))
+                                .extend(1.0),
+                            ),
+                            TalkObj,
+                        ))
+                        .with_children(|builder| {
+                            builder.spawn((
+                                Text2d::new(format!("{:?}", new_person)),
+                                NameBox,
+                                slightly_smaller_text_font.clone(),
+                                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                                // Wrap text in the rectangle
+                                TextBounds::from(talk_size),
+                                // ensure the text is drawn on top of the box
+                                Transform::from_translation(Vec3::Z),
+                            ));
+                        });
+
+                    //Look at secy person talking
+                    commands.spawn((
+                        get_portrait(
+                            new_person,
+                            Vec2::new(width / 2.0, width / 2.0),
+                            &asset_server,
+                        ),
+                        Transform::from_translation(Vec2::new(-width / 3.0, 0.0).extend(-0.5)),
+                        TalkObj,
+                        Portrait,
+                    ));
                 }
             } else {
                 //We have finished reading

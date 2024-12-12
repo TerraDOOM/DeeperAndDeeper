@@ -90,8 +90,7 @@
     },
     { 
       "id": "Day1Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "NoTuna",
@@ -111,78 +110,66 @@
       "id": "Tuna",
       "text": [
         ["Carle", "You're back! And you have the tuna!"],
-        ["You", "Yes! I do!"]
-      ],
-      "choice": []
+        ["You", "Yes! I do!"],
+        ["Carle", "Mittens will thank you."],
+        [null, "Jule walks into the room, carrying a cup of coffee."],
+        ["Jule", "Really?"]
+      ]
     },
     { 
       "id": "TunaSecondTry",
-      "text": [[null, ""]],
-      "choice": []
+      "text": [[null, ""]]
     },
     { 
       "id": "AboveAndBeyond",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day2Morning",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day2Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day3Morning",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day3Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day4Morning",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day4Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day5Morning",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day5Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day6Morning",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day6Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day7Morning",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     },
     { 
       "id": "Day7Evening",
-      "text": [[null, "Le epic placeholder"]],
-      "choice": []
+      "text": [[null, "Le epic placeholder"]]
     }
 ]

@@ -32,6 +32,7 @@
         [null, "The crew starts filtering out of the room, out into the living quarters."],
         ["Liv", "...Thanks."]
       ],
+      "choices": [["one hour later...", "TakeStockDay1"], ["KILL YOURSELF", "return"]],
       "scene": [[1, "TakeStockDay1"]]
     },
     { 

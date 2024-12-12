@@ -248,12 +248,18 @@ fn on_chill(
         DatingObj,
     ));
 
+    let size = width / 9.0;
+
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.75, 0.2, 0.2), Vec2::new(size, size)),
+        Transform::from_translation(Vec2::new(0.0, -height / 3.0).extend(0.0)),
+        Portrait,
+        DatingObj,
+    ));
+
     for (idx, i) in context.all_characters.iter().enumerate() {
-        let size = width / 9.0;
-
         let portrait = get_portrait(i.character, Vec2::new(size, size), &asset_server);
-
-        let box_position = dbg!(Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0));
+        let box_position = Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0);
         // if let Some(mission_var) = i.current_dialogue {
         //     let box_size = Vec2::new(size / 1.5, size / 1.5);
         //     let box_position = box_position + Vec2::new(0.0, -150.0);
@@ -564,7 +570,7 @@ fn talking_action(
         for (mut textbox, mut text) in &mut query {
             (textbox).0 += 1;
             if (textbox).0 < context.selected_scene.text.len() {
-                let dialogue = dbg!(context.selected_scene.text[(textbox).0].1.clone());
+                let dialogue = context.selected_scene.text[(textbox).0].1.clone();
 
                 *text = Text2d::new(dialogue);
 
@@ -637,6 +643,7 @@ fn talking_action(
                 }
             } else {
                 //We have finished reading
+                dbg!(context.selected_scene.clone());
                 if let Some(mission) = context.selected_scene.mission {
                     context.gathered_mission.push(mission);
                 }
@@ -681,33 +688,51 @@ fn cursor_action(
         || keyboard_input.just_pressed(KeyCode::ArrowLeft);
     let right = keyboard_input.just_pressed(KeyCode::KeyD)
         || keyboard_input.just_pressed(KeyCode::ArrowRight);
+    let up =
+        keyboard_input.just_pressed(KeyCode::KeyW) || keyboard_input.just_pressed(KeyCode::ArrowUp);
+    let down = keyboard_input.just_pressed(KeyCode::KeyS)
+        || keyboard_input.just_pressed(KeyCode::ArrowDown);
     let confirm = keyboard_input.just_pressed(KeyCode::Enter)
         || keyboard_input.just_pressed(KeyCode::Space)
         || keyboard_input.just_pressed(KeyCode::KeyZ);
 
     if confirm {
-        let talk_key = context.all_characters[(context.cursor + 3) as usize]
-            .current_dialogue
-            .clone();
+        if context.cursor == -5 {
+            todo!();
+        } else {
+            let talk_key = context.all_characters[(context.cursor + 3) as usize]
+                .current_dialogue
+                .clone();
 
-        for scene in context.scenes.clone() {
-            if scene.id == talk_key {
-                dbg!(context.selected_scene = scene);
-                break;
-            };
+            for scene in context.scenes.clone() {
+                if scene.id == talk_key {
+                    dbg!(context.selected_scene = scene);
+                    break;
+                };
+            }
+            tmp.set(DatingState::Talking);
         }
-        tmp.set(DatingState::Talking);
     }
 
-    if right && context.cursor < 3 {
+    if right && context.cursor < 3 && context.cursor != -5 {
         context.cursor += 1
     } else if left && context.cursor > -3 {
         context.cursor -= 1
+    } else if up && context.cursor == -5 {
+        context.cursor = 0;
+    } else if down && context.cursor != -5 {
+        context.cursor = -5;
     }
 
     for mut transform in &mut query {
         let width = windows.single().resolution.width();
         let height = windows.single().resolution.height();
-        transform.translation.x = ((context.cursor as f32) * width / 7.5);
+        if context.cursor != -5 {
+            transform.translation.y = 250.0;
+            transform.translation.x = (context.cursor as f32) * width / 7.5;
+        } else {
+            transform.translation.y = -height / 3.0;
+            transform.translation.x = 0.0;
+        }
     }
 }

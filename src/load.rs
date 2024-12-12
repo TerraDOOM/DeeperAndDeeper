@@ -6,7 +6,12 @@ pub fn load_scenes() -> Vec<DatingScene> {
 
     let paths = vec![
         std::path::Path::new("assets/Scenes/GenericScenes.json"),
+        std::path::Path::new("assets/Scenes/DiedrickScenes.json"),
+        std::path::Path::new("assets/Scenes/FredrickScenes.json"),
+        std::path::Path::new("assets/Scenes/JoeScenes.json"),
+        std::path::Path::new("assets/Scenes/JuleScenes.json"),
         std::path::Path::new("assets/Scenes/CarleScenes.json"),
+        std::path::Path::new("assets/Scenes/LivScenes.json"),
     ];
 
     let mut scenes: Vec<DatingScene> = vec![];

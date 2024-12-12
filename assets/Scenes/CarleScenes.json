@@ -5,6 +5,6 @@
         ["Carle", "Bro... is anything even real?"],
         ["You", "No bro."]
       ],
-      "scene": [[["GreenhouseFixed", 1], "CarleKilling"], [[null, 0], "Tuna"]]
+      "scene": [[["GreenhouseFixed", 1], "Tuna"], [[null, 0], "return"]]
     }
 ]

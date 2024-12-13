@@ -418,7 +418,7 @@ fn spawn_player(
 
         //Greenhouse
         commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(28000.0, -3400.0, 0.0),
+            transform: Transform::from_xyz(26000.0, -3400.0, 0.0),
             sprite: Sprite {
                 image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,

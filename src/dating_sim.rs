@@ -154,7 +154,6 @@ pub fn dating_sim_plugin(app: &mut App) {
     let first_scene = all_scenes[0].clone();
 
     let mut initial_events: HashMap<String, isize> = HashMap::new();
-    initial_events.insert("GreenhouseFixed".to_string(), 1);
     initial_events.insert("day".to_string(), 1);
 
     app.insert_resource(DatingContext {
@@ -316,7 +315,12 @@ fn on_chill(
     ));
 
     for (idx, i) in context.all_characters.iter().enumerate() {
-        let portrait = get_portrait(i.character, Vec2::new(size, size), &asset_server);
+        let portrait = get_portrait(
+            i.character,
+            Vec2::new(size, size),
+            &asset_server,
+            context.flags.clone(),
+        );
         let box_position = Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0);
         // if let Some(mission_var) = i.current_dialogue {
         //     let box_size = Vec2::new(size / 1.5, size / 1.5);
@@ -360,42 +364,47 @@ fn on_chill(
     let text_justification = JustifyText::Center;
 }
 
-fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetServer>) -> Sprite {
+fn get_portrait(
+    character: CharactersType,
+    size: Vec2,
+    asset_server: &Res<AssetServer>,
+    flags: HashMap<String, isize>,
+) -> Sprite {
     return match character {
-        CharactersType::Joe => Sprite {
+        CharactersType::Joe if flags.get("JoeDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Janitor Joe-Recovered.png"),
             ..Default::default()
         },
-        CharactersType::Jule => Sprite {
+        CharactersType::Jule if flags.get("JuleDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_General_Jule.png"),
             ..Default::default()
         },
-        CharactersType::Fredrick => Sprite {
+        CharactersType::Fredrick if flags.get("FredrickDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
             ..Default::default()
         },
 
-        CharactersType::Diedrick => Sprite {
+        CharactersType::Diedrick if flags.get("DiedrickDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
             ..Default::default()
         },
 
-        CharactersType::Carle => Sprite {
+        CharactersType::Carle if flags.get("CarleDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Carly.png"),
 
             ..Default::default()
         },
-        CharactersType::Liv => Sprite {
+        CharactersType::Liv if flags.get("LivDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Liv.png"),
             ..Default::default()
         },
-        CharactersType::Cat => Sprite {
+        CharactersType::Cat if flags.get("CatDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_cat.png"),
             ..Default::default()
@@ -506,6 +515,7 @@ fn start_talking(
                 real_preson,
                 Vec2::new(width / 2.0, width / 2.0),
                 &asset_server,
+                context.flags.clone(),
             ),
             Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
             TalkObj,
@@ -732,6 +742,7 @@ fn talking_action(
                         new_person,
                         Vec2::new(width / 2.0, width / 2.0),
                         &asset_server,
+                        context.flags.clone(),
                     ),
                     Transform::from_translation(
                         Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5),

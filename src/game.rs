@@ -535,9 +535,9 @@ fn spawn_ui(
             width: Val::Percent(100.),
             height: Val::Percent(100.),
             justify_content: JustifyContent::SpaceBetween,
-            OnExploration,
             ..default()
         })
+        .insert(OnExploration)
         .id();
 
     let left_column = commands
@@ -547,9 +547,9 @@ fn spawn_ui(
             align_items: AlignItems::Start,
             flex_grow: 1.,
             margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
-            OnExploration,
             ..default()
         },))
+        .insert(OnExploration)
         .with_children(|builder| {
             builder
                 .spawn((

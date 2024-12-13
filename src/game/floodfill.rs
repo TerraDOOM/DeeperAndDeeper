@@ -126,11 +126,6 @@ fn fill(start: (usize, usize), tiles: &Vec<[Tile; 1000]>) -> Region {
         }
     }
 
-    println!(
-        "flood fill took {}",
-        std::time::Instant::now().duration_since(t0).as_secs_f32()
-    );
-
     Region {
         start,
         members: visited,

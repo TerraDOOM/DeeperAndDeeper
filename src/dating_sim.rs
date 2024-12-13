@@ -3,7 +3,7 @@
 //    picking: Vec<option>,
 //}
 
-use super::{GameState, despawn_screen};
+use super::{despawn_screen, GameState};
 use crate::load;
 use bevy::{
     math::ops,
@@ -156,6 +156,7 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let mut initial_events: HashMap<String, isize> = HashMap::new();
     initial_events.insert("GreenhouseFixed".to_string(), 1);
+    initial_events.insert("day".to_string(), 0);
 
     app.insert_resource(DatingContext {
         all_characters: characters,
@@ -201,7 +202,11 @@ pub fn dating_sim_plugin(app: &mut App) {
     );
 }
 
-fn on_dating_sim(mut tmp: ResMut<NextState<DatingState>>) {
+fn on_dating_sim(mut tmp: ResMut<NextState<DatingState>>, mut context: ResMut<DatingContext>) {
+    let key = "day".to_string();
+    if let Some(flag) = context.flags.get_mut(&key) {
+        *flag += 1;
+    }
     tmp.set(DatingState::Chilling);
 }
 
@@ -557,12 +562,12 @@ fn choose_move(
     if confirm {
         if let Some(choices) = context.selected_scene.choice.clone() {
             if context.cursor == 0 {
-                if (choices.0.1).to_lowercase() == "return" {
+                if (choices.0 .1).to_lowercase() == "return" {
                     tmp.set(DatingState::Chilling);
                 } else {
                     for scene in context.scenes.clone() {
-                        dbg!(scene.id == choices.0.1);
-                        if scene.id == choices.0.1 {
+                        dbg!(scene.id == choices.0 .1);
+                        if scene.id == choices.0 .1 {
                             context.selected_scene = scene;
                             tmp.set(DatingState::Talking);
                             break;
@@ -570,11 +575,11 @@ fn choose_move(
                     }
                 }
             } else {
-                if (choices.1.1).to_lowercase() == "return" {
+                if (choices.1 .1).to_lowercase() == "return" {
                     tmp.set(DatingState::Chilling);
                 } else {
                     for scene in context.scenes.clone() {
-                        if scene.id == choices.1.1 {
+                        if scene.id == choices.1 .1 {
                             context.selected_scene = scene;
                             tmp.set(DatingState::Talking);
                             break;
@@ -709,9 +714,9 @@ fn talking_action(
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
                     'outer: for branch in scene {
                         //                            flags: HashMap<String, isize>,
-                        if let Some(flag_name) = branch.0.0 {
+                        if let Some(flag_name) = branch.0 .0 {
                             if context.flags.contains_key(&flag_name)
-                                && context.flags[&flag_name] >= branch.0.1
+                                && context.flags[&flag_name] >= branch.0 .1
                             {
                                 //We fulfil the condition and move on
                                 if branch.1.to_lowercase() == "return" {
@@ -727,10 +732,10 @@ fn talking_action(
                                         break 'outer;
                                     };
                                 }
-                            } else if (branch.0.1 < 0 && !context.flags.contains_key(&flag_name))
-                                || (branch.0.1 < 0
+                            } else if (branch.0 .1 < 0 && !context.flags.contains_key(&flag_name))
+                                || (branch.0 .1 < 0
                                     && context.flags.contains_key(&flag_name)
-                                    && context.flags[&flag_name] >= branch.0.1.abs())
+                                    && context.flags[&flag_name] >= branch.0 .1.abs())
                             {
                                 //We fulfil the condition and move on
                                 if branch.1.to_lowercase() == "return" {

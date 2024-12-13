@@ -532,6 +532,7 @@ fn spawn_ui(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetSe
             width: Val::Percent(100.),
             height: Val::Percent(100.),
             justify_content: JustifyContent::SpaceBetween,
+            OnExploration,
             ..default()
         })
         .id();
@@ -543,6 +544,7 @@ fn spawn_ui(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetSe
             align_items: AlignItems::Start,
             flex_grow: 1.,
             margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
+            OnExploration,
             ..default()
         },            ))
         .with_children(|builder| {
@@ -642,23 +644,39 @@ fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
 
 fn time_pressure(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetServer>,query: Query<Entity, With<TimerHud>>,
                  objective: ResMut<Objectives>,
-                 mut writer: TextUiWriter,) {
+                 mut writer: TextUiWriter,
+                 mut menu_state: ResMut<NextState<GameState>>) {
     let mut t = time.elapsed().as_secs_f64() - objective.load_time;
 
     if let Some(timer) = objective.time_limit{
         t = (timer as f64) - t;
 
-        if t < 0.0{
-            println!("You have run out of oxygen");
+        if t < 0.0 {
+
+
+            if t < -5.0{
+                println!("You have run out of oxygen");
+                menu_state.set(GameState::DatingSim);
+            }
+
+            for entity in &query {
+                let display_time = t;
+
+                *writer.text(entity, 1) =
+                    format!("You are out of oxygen",);
+            }
+        }
+        else {
+            for entity in &query {
+                let display_time = t;
+
+                *writer.text(entity, 0) =
+                    format!("O2: {display_time:.0}\n",);
+                //        *writer.text(entity, 1) = format!("You are fucked");
+            }
         }
     }
-    for entity in &query {
-        let display_time = t.max(0.0001);
 
-        *writer.text(entity, 0) =
-            format!("{display_time}",);
-//        *writer.text(entity, 1) = format!("You are fucked");
-    }
 
 
 }

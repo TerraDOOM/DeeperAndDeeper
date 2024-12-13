@@ -289,7 +289,7 @@ struct OutsideOST;
 #[derive(Component)]
 struct BackgroundExplore;
 
-fn pick_OST(index: usize) -> String {
+fn pick_ost(index: usize) -> String {
     let path = match index {
         1 => "Music/Music_CaveTheme1.ogg".to_string(),
         2 => "Music/Music_CaveTheme2.ogg".to_string(),
@@ -324,11 +324,11 @@ fn spawn_player(
     let height = windows.single().resolution.height();
 
     let background_size = Some(Vec2::new(width, height));
-    let background_position = Transform::from_xyz(6800.0, -7500.0, -10.0);
+    let background_position = Transform::from_xyz(0.0, 0.0, 10.0);
 
-    let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_1000X600.png");
+    let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_frame_1-9.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(600), 8, 1, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::splat(600), 8, 2, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_config_1 = AnimationConfig::new(1, 8, 10);
 
@@ -346,7 +346,7 @@ fn spawn_player(
         BackgroundExplore,
     ));
 
-    commands.spawn(AudioPlayer::new(server.load(pick_OST(1))));
+    commands.spawn(AudioPlayer::new(server.load(pick_ost(1))));
 
     let texture = server.load("Sprite/Player_Walking_Sprite-Sheet.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
@@ -602,9 +602,13 @@ fn player_movement(
 }
 
 fn update_camera(
-    mut camera: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
-    player: Query<&Transform, (With<Player>, Without<Camera2d>)>,
+    mut camera: Query<
+        &mut Transform,
+        (With<Camera2d>, Without<Player>, Without<BackgroundExplore>),
+    >,
+    player: Query<&Transform, (With<Player>, Without<Camera2d>, Without<BackgroundExplore>)>,
     time: Res<Time>,
+    mut background: Single<&mut Transform, (With<BackgroundExplore>)>,
 ) {
     let Ok(mut camera) = camera.get_single_mut() else {
         return;
@@ -622,6 +626,7 @@ fn update_camera(
     camera
         .translation
         .smooth_nudge(&direction, 10.0, time.delta_secs());
+    background.translation = camera.translation;
 }
 
 fn read_character_controller_collisions(

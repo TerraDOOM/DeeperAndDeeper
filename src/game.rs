@@ -16,6 +16,7 @@ use std::{collections::VecDeque, time::Duration};
 use rand::prelude::*;
 
 pub mod floodfill;
+use crate::dating_sim;
 
 use self::floodfill::Floodfill;
 
@@ -439,6 +440,11 @@ fn spawn_player(
                 custom_size: generous_trigger,
                 ..default()
             },
+            trigger: TriggerComponent {
+                id: TriggerType::ItemPickup,
+                delete_on_trigger: true,
+                flags: Some("SulfurCollected".to_string()),
+            },
             ..default()
         });
         //potassium TODO
@@ -470,6 +476,11 @@ fn spawn_player(
                 image: server.load("Portraits/Character_cat.png"),
                 custom_size: generous_trigger,
                 ..default()
+            },
+            trigger: TriggerComponent {
+                id: TriggerType::ItemPickup,
+                delete_on_trigger: true,
+                flags: Some("OilCollected".to_string()),
             },
             ..default()
         });
@@ -556,6 +567,7 @@ fn create_spaceship(mut commands: Commands, server: ResMut<AssetServer>) {
         trigger: TriggerComponent {
             id: TriggerType::Ship,
             delete_on_trigger: false,
+            flags: None,
         },
         ..default()
     });
@@ -565,6 +577,7 @@ fn create_spaceship(mut commands: Commands, server: ResMut<AssetServer>) {
 struct WorldTriggerEvent {
     trigger_type: TriggerType,
     message: (),
+    flag: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
@@ -580,6 +593,7 @@ enum TriggerType {
 struct TriggerComponent {
     id: TriggerType,
     delete_on_trigger: bool,
+    flags: Option<String>,
 }
 
 #[derive(Bundle)]
@@ -603,15 +617,24 @@ impl Default for WorldTrigger {
             trigger: TriggerComponent {
                 id: TriggerType::None,
                 delete_on_trigger: true,
+                flags: None,
             },
         }
     }
 }
 
-fn on_pickup(mut reader: EventReader<WorldTriggerEvent>) {
+fn on_pickup(
+    mut reader: EventReader<WorldTriggerEvent>,
+    mut context: ResMut<dating_sim::DatingContext>,
+) {
     for event in reader.read() {
         if event.trigger_type != TriggerType::ItemPickup {
             continue;
+        } else {
+            if let Some(key) = &event.flag {
+                let flag = context.flags.entry(key.clone()).or_insert(0);
+                *flag += 1;
+            }
         }
     }
 }
@@ -631,6 +654,7 @@ fn check_triggers(
                 writer.send(WorldTriggerEvent {
                     trigger_type: trigger.id,
                     message: (),
+                    flag: trigger.flags.clone(),
                 });
                 if trigger.delete_on_trigger {
                     commands.entity(entity).despawn();

@@ -41,12 +41,12 @@ struct CharactersStatus {
 }
 
 #[derive(Resource)]
-struct DatingContext {
+pub struct DatingContext {
     all_characters: Vec<CharactersStatus>,
     day: usize,
     cursor: isize,
     selected_scene: DatingScene,
-    flags: HashMap<String, isize>,
+    pub flags: HashMap<String, isize>,
     gathered_mission: Vec<MissionType>,
     scenes: Vec<DatingScene>,
 }
@@ -872,7 +872,7 @@ fn cursor_action(
         || keyboard_input.just_pressed(KeyCode::KeyZ);
 
     if confirm {
-        if context.cursor == -5 {
+        if context.cursor == -5 && context.flags["evening"] != 0 {
             tmp.set(DatingState::Noting);
             tmp_super.set(GameState::Explore);
         } else {
@@ -897,7 +897,7 @@ fn cursor_action(
         context.cursor -= 1
     } else if up && context.cursor == -5 {
         context.cursor = 0;
-    } else if down && context.cursor != -5 {
+    } else if down && context.cursor != -5 && context.flags["evening"] != 0 {
         context.cursor = -5;
     }
 

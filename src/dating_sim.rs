@@ -496,7 +496,7 @@ fn start_talking(
                     // Wrap text in the rectangle
                     TextBounds::from(talk_size),
                     // ensure the text is drawn on top of the box
-                    Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
+                    Transform::from_translation(Vec3::new(-85.0, 25.0, 1.0)),
                 ));
             });
 
@@ -722,7 +722,7 @@ fn talking_action(
                             // Wrap text in the rectangle
                             TextBounds::from(talk_size),
                             // ensure the text is drawn on top of the box
-                            Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
+                            Transform::from_translation(Vec3::new(-85.0, 25.0, 1.0)),
                         ));
                     });
 

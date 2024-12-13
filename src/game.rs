@@ -341,7 +341,7 @@ fn spawn_player(
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
     let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 5, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let mut animation_config_1 = AnimationConfig::new(0, 0, 16, 5);
+    let mut animation_config_1 = AnimationConfig::new(0, 1, 8, 10);
     animation_config_1.running = true;
 
     let enc = commands.spawn((
@@ -429,7 +429,7 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
             },
@@ -446,7 +446,7 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(23100.0, -20100.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
             },
@@ -461,7 +461,7 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
             },
@@ -472,7 +472,7 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(274.0 * 100.0, -11600.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
             },
@@ -483,7 +483,7 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
             },
@@ -492,6 +492,7 @@ fn spawn_player(
                 delete_on_trigger: true,
                 flags: Some("OilCollected".to_string()),
             },
+            collider: Collider::ball(250.0),
             ..default()
         });
 
@@ -499,7 +500,7 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
             },
@@ -940,13 +941,13 @@ fn time_pressure(
             for entity in &query {
                 let display_time = t;
 
-                *writer.text(entity, 1) = format!("You are out of oxygen",);
+                *writer.text(entity, 1) = format!("You must return now!",);
             }
         } else {
             for entity in &query {
                 let display_time = t;
 
-                *writer.text(entity, 0) = format!("O2: {display_time:.0}\n",);
+                *writer.text(entity, 0) = format!("Oxygen time: {display_time:.0}\n",);
                 //        *writer.text(entity, 1) = format!("You are fucked");
             }
         }
@@ -1067,7 +1068,9 @@ struct AnimationConfig {
     running: bool,
 }
 
-fn show_z(bg: Single<&AnimationConfig, With<BackgroundExplore>>) {}
+fn show_z(bg: Single<&AnimationConfig, With<BackgroundExplore>>) {
+    let bg = dbg!(bg.into_inner());
+}
 
 impl AnimationConfig {
     fn new(idle: usize, first: usize, last: usize, fps: u8) -> Self {

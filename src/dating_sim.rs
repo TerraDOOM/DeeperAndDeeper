@@ -67,7 +67,7 @@ pub struct DatingScene {
     outcome: Option<Vec<(String, isize)>>,
     choice: Option<((String, String), (String, String))>,
     mission: Option<MissionType>,
-    scene: Option<Vec<((Option<String>, isize), String)>>,
+    scene: Option<Vec<(Vec<(Option<String>, isize)>, String)>>,
 }
 
 #[derive(Component)]
@@ -156,7 +156,7 @@ pub fn dating_sim_plugin(app: &mut App) {
 
     let mut initial_events: HashMap<String, isize> = HashMap::new();
     initial_events.insert("GreenhouseFixed".to_string(), 1);
-    initial_events.insert("day".to_string(), 0);
+    initial_events.insert("day".to_string(), 1);
 
     app.insert_resource(DatingContext {
         all_characters: characters,
@@ -202,11 +202,28 @@ pub fn dating_sim_plugin(app: &mut App) {
     );
 }
 
-fn on_dating_sim(mut tmp: ResMut<NextState<DatingState>>, mut context: ResMut<DatingContext>) {
-    let key = "day".to_string();
-    if let Some(flag) = context.flags.get_mut(&key) {
-        *flag += 1;
-    }
+fn on_dating_sim(
+    mut commands: Commands,
+    mut tmp: ResMut<NextState<DatingState>>,
+    context: ResMut<DatingContext>,
+    camera: Single<
+        Entity,
+        (
+            With<Camera2d>,
+            With<Transform>,
+            Without<crate::game::Player>,
+        ),
+    >,
+) {
+    //    let key = "day".to_string();
+    //    if let Some(flag) = context.flags.get_mut(&key) {
+    //        *flag += 1;
+    //    }
+    let entity = camera.into_inner();
+
+    commands.entity(entity).despawn();
+    commands.spawn(Camera2d);
+
     tmp.set(DatingState::Chilling);
 }
 
@@ -713,59 +730,61 @@ fn talking_action(
                     //context.selected_scene = Some(context.selected_scene.choice)[0][1];
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
                     'outer: for branch in scene {
-                        //                            flags: HashMap<String, isize>,
-                        if let Some(flag_name) = branch.0 .0 {
-                            if context.flags.contains_key(&flag_name)
-                                && context.flags[&flag_name] >= branch.0 .1
-                            {
-                                //We fulfil the condition and move on
+                        for check in branch {
+                            if let Some(flag_name) = branch.0 .0 {
+                                if context.flags.contains_key(&flag_name)
+                                    && context.flags[&flag_name] >= branch.0 .1
+                                {
+                                    //We fulfil the condition and move on
+                                    if branch.1.to_lowercase() == "return" {
+                                        tmp.set(DatingState::Chilling);
+                                        break 'outer;
+                                    }
+                                    for scene in context.scenes.clone() {
+                                        if scene.id == branch.1 {
+                                            context.selected_scene = scene;
+                                            (textbox).0 = 0;
+                                            let dialogue = context.selected_scene.text[0].1.clone();
+                                            *text = Text2d::new(dialogue);
+                                            break 'outer;
+                                        };
+                                    }
+                                } else if (branch.0 .1 < 0
+                                    && !context.flags.contains_key(&flag_name))
+                                    || (branch.0 .1 < 0
+                                        && context.flags.contains_key(&flag_name)
+                                        && context.flags[&flag_name] >= branch.0 .1.abs())
+                                {
+                                    //We fulfil the condition and move on
+                                    if branch.1.to_lowercase() == "return" {
+                                        tmp.set(DatingState::Chilling);
+                                        break 'outer;
+                                    }
+                                    for scene in context.scenes.clone() {
+                                        if scene.id == branch.1 {
+                                            context.selected_scene = scene;
+                                            (textbox).0 = 0;
+                                            let dialogue = context.selected_scene.text[0].1.clone();
+                                            *text = Text2d::new(dialogue);
+                                            break 'outer;
+                                        };
+                                    }
+                                }
+                            } else {
+                                //We have a always true branch
                                 if branch.1.to_lowercase() == "return" {
                                     tmp.set(DatingState::Chilling);
                                     break 'outer;
                                 }
                                 for scene in context.scenes.clone() {
                                     if scene.id == branch.1 {
-                                        context.selected_scene = scene;
+                                        dbg!(context.selected_scene = scene);
                                         (textbox).0 = 0;
                                         let dialogue = context.selected_scene.text[0].1.clone();
                                         *text = Text2d::new(dialogue);
                                         break 'outer;
                                     };
                                 }
-                            } else if (branch.0 .1 < 0 && !context.flags.contains_key(&flag_name))
-                                || (branch.0 .1 < 0
-                                    && context.flags.contains_key(&flag_name)
-                                    && context.flags[&flag_name] >= branch.0 .1.abs())
-                            {
-                                //We fulfil the condition and move on
-                                if branch.1.to_lowercase() == "return" {
-                                    tmp.set(DatingState::Chilling);
-                                    break 'outer;
-                                }
-                                for scene in context.scenes.clone() {
-                                    if scene.id == branch.1 {
-                                        context.selected_scene = scene;
-                                        (textbox).0 = 0;
-                                        let dialogue = context.selected_scene.text[0].1.clone();
-                                        *text = Text2d::new(dialogue);
-                                        break 'outer;
-                                    };
-                                }
-                            }
-                        } else {
-                            //We have a always true branch
-                            if branch.1.to_lowercase() == "return" {
-                                tmp.set(DatingState::Chilling);
-                                break 'outer;
-                            }
-                            for scene in context.scenes.clone() {
-                                if scene.id == branch.1 {
-                                    dbg!(context.selected_scene = scene);
-                                    (textbox).0 = 0;
-                                    let dialogue = context.selected_scene.text[0].1.clone();
-                                    *text = Text2d::new(dialogue);
-                                    break 'outer;
-                                };
                             }
                         }
                     }

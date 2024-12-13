@@ -6,7 +6,6 @@ use bevy::{
     color::palettes::css::*,
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     ui::widget::TextUiWriter,
-    window::PresentMode,
 };
 use bevy_rapier2d::{prelude::*, rapier::geometry::CollisionEventFlags};
 use image::{self, GenericImageView};
@@ -55,7 +54,13 @@ pub fn game_plugin(app: &mut App) {
         .add_systems(Startup, load_map)
         .add_systems(
             OnEnter(GameState::Explore),
-            (spawn_player, start_exploration, spawn_ui, debugging_info),
+            (
+                spawn_player,
+                start_exploration,
+                spawn_ui,
+                debugging_info,
+                create_spaceship,
+            ),
         )
         .add_systems(
             Update,
@@ -73,7 +78,7 @@ pub fn game_plugin(app: &mut App) {
             PostUpdate,
             check_triggers.run_if(in_state(GameState::Explore)),
         )
-        .insert_resource(Events::<ItemPickupEvent>::default())
+        .insert_resource(Events::<WorldTriggerEvent>::default())
         .add_systems(OnExit(GameState::Explore), despawn_screen::<OnExploration>);
 }
 
@@ -136,7 +141,6 @@ struct TileSprites {
     potassium: Sprite,
     sulfur: Sprite,
     oil: Sprite,
-    //    iron: Sprite,
     error: Sprite,
 }
 
@@ -174,7 +178,7 @@ impl AssetLoader for MapLoader {
         _settings: &(),
         _load_context: &mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
-        use std::io::{self, BufRead, Read, Seek};
+        use std::io;
 
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
@@ -205,7 +209,7 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     let map: Handle<MapAsset> = asset_server.load("Map/map.png");
     let make_sprite = |image: &str, coord| Sprite {
         image: asset_server.load(image),
-        custom_size: Some(Vec2::new(104.0, 104.0)),
+        custom_size: Some(Vec2::new(100.5, 100.5)),
         rect: Some(Rect {
             min: coord,
             max: coord + SPRITE_SIZE,
@@ -277,7 +281,7 @@ impl Tile {
     }
 }
 
-pub fn spawn_player(
+fn spawn_player(
     mut commands: Commands,
     mut rng: ResMut<Random>,
     server: Res<AssetServer>,
@@ -323,17 +327,14 @@ pub fn spawn_player(
         })
         .insert(ActiveCollisionTypes::KINEMATIC_STATIC);
 
-    commands.spawn(Collectable {
-        sprite: SpriteBundle {
-            sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
-                custom_size: Some(Vec2::new(sprite_size, sprite_size)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
+    commands.spawn(WorldTrigger {
+        transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
+        sprite: Sprite {
+            image: server.load("Portraits/Character_cat.png"),
+            custom_size: Some(Vec2::new(sprite_size, sprite_size)),
             ..Default::default()
         },
-        collider: Collider::ball(50.0),
+
         ..Default::default()
     });
 
@@ -356,8 +357,7 @@ pub fn spawn_player(
 
     for (x, row) in tiles.iter().enumerate() {
         for (y, tile) in row.iter().enumerate() {
-            let transform =
-                Transform::from_xyz(x as f32 * 100.0 - 2.0, -(y as f32 * 100.0 - 2.0), -1.0);
+            let transform = Transform::from_xyz(x as f32 * 100.0, -(y as f32 * 100.0), -1.0);
 
             commands.spawn((
                 transform,
@@ -393,56 +393,93 @@ pub fn is_exposed_and_solid(tiles: &Vec<[Tile; 1000]>, x: usize, y: usize) -> bo
     }
 }
 
+fn create_spaceship(mut commands: Commands, server: ResMut<AssetServer>) {
+    // 65, 75
+
+    commands.spawn(WorldTrigger {
+        sprite: Sprite {
+            image: server.load("Sprite/SpacShip_Sprite.png"),
+            custom_size: Some(Vec2::new(300.0, 300.0)),
+            ..default()
+        },
+        transform: Transform::from_xyz(6500.0, -7500.0, 0.0),
+        collider: Collider::cuboid(150.0, 150.0),
+        trigger: TriggerComponent {
+            id: TriggerType::Ship,
+        },
+        ..default()
+    });
+}
+
 #[derive(Debug, Event)]
-struct ItemPickupEvent {
-    item_id: usize,
+struct WorldTriggerEvent {
+    trigger_type: TriggerType,
+    message: (),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[repr(u8)]
+enum TriggerType {
+    #[default]
+    None,
+    ItemPickup,
+    Ship,
 }
 
 #[derive(Component, Default)]
-struct Item {
-    id: usize,
+struct TriggerComponent {
+    id: TriggerType,
 }
 
 #[derive(Bundle)]
-struct Collectable {
-    sprite: SpriteBundle,
+struct WorldTrigger {
+    sprite: Sprite,
+    transform: Transform,
     collider: Collider,
     sensor: Sensor,
-    item: Item,
+    trigger: TriggerComponent,
     active_events: ActiveEvents,
 }
 
-impl Default for Collectable {
+impl Default for WorldTrigger {
     fn default() -> Self {
         Self {
             sprite: default(),
+            transform: default(),
             collider: default(),
             sensor: Sensor,
-            item: default(),
             active_events: ActiveEvents::COLLISION_EVENTS,
+            trigger: TriggerComponent {
+                id: TriggerType::None,
+            },
         }
     }
 }
 
-fn on_pickup(mut reader: EventReader<ItemPickupEvent>) {
-    for pickup in reader.read() {
-        println!("picked up {:?}", pickup);
+fn on_pickup(mut reader: EventReader<WorldTriggerEvent>) {
+    for event in reader.read() {
+        if event.trigger_type != TriggerType::ItemPickup {
+            continue;
+        }
     }
 }
 
 fn check_triggers(
     mut commands: Commands,
     mut reader: EventReader<CollisionEvent>,
-    mut writer: EventWriter<ItemPickupEvent>,
-    sensors: Query<(Entity, &Item), With<Sensor>>,
+    mut writer: EventWriter<WorldTriggerEvent>,
+    sensors: Query<(Entity, &TriggerComponent), With<Sensor>>,
 ) {
     for collision in reader.read() {
         if let CollisionEvent::Started(a, b, flags) = collision {
             if !flags.contains(CollisionEventFlags::SENSOR) {
                 continue;
             }
-            if let Ok((entity, item)) = sensors.get(*a).or(sensors.get(*b)) {
-                writer.send(ItemPickupEvent { item_id: item.id });
+            if let Ok((entity, trigger)) = sensors.get(*a).or(sensors.get(*b)) {
+                writer.send(WorldTriggerEvent {
+                    trigger_type: trigger.id,
+                    message: (),
+                });
                 commands.entity(entity).despawn();
             }
         }

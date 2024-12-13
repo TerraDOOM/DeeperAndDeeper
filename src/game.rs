@@ -86,14 +86,13 @@ pub struct Player {
     last_pos: Vec2,
 }
 
-
-#[derive(Resource, Debug,Clone)]
+#[derive(Resource, Debug, Clone)]
 pub struct Objectives {
     time_limit: Option<usize>,
     load_time: f64,
     accepted_missions: Vec<String>,
     day: usize,
-    map_flags: Vec<String>
+    map_flags: Vec<String>,
 }
 
 #[derive(Component)]
@@ -523,9 +522,13 @@ fn read_character_controller_collisions(
     player.grounded = output.grounded;
 }
 
-fn spawn_ui(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetServer>,mut objective: ResMut<Objectives>) {
+fn spawn_ui(
+    time: Res<Time>,
+    mut commands: Commands,
+    asset_server: ResMut<AssetServer>,
+    mut objective: ResMut<Objectives>,
+) {
     let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
-
 
     let root_uinode = commands
         .spawn(Node {
@@ -546,7 +549,7 @@ fn spawn_ui(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetSe
             margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
             OnExploration,
             ..default()
-        },            ))
+        },))
         .with_children(|builder| {
             builder
                 .spawn((
@@ -642,19 +645,22 @@ fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     commands.entity(root_uinode).add_children(&[right_column]);
 }
 
-fn time_pressure(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetServer>,query: Query<Entity, With<TimerHud>>,
-                 objective: ResMut<Objectives>,
-                 mut writer: TextUiWriter,
-                 mut menu_state: ResMut<NextState<GameState>>) {
+fn time_pressure(
+    time: Res<Time>,
+    mut commands: Commands,
+    asset_server: ResMut<AssetServer>,
+    query: Query<Entity, With<TimerHud>>,
+    objective: ResMut<Objectives>,
+    mut writer: TextUiWriter,
+    mut menu_state: ResMut<NextState<GameState>>,
+) {
     let mut t = time.elapsed().as_secs_f64() - objective.load_time;
 
-    if let Some(timer) = objective.time_limit{
+    if let Some(timer) = objective.time_limit {
         t = (timer as f64) - t;
 
         if t < 0.0 {
-
-
-            if t < -5.0{
+            if t < -5.0 {
                 println!("You have run out of oxygen");
                 menu_state.set(GameState::DatingSim);
             }
@@ -662,23 +668,17 @@ fn time_pressure(time: Res<Time>,mut commands: Commands, asset_server: ResMut<As
             for entity in &query {
                 let display_time = t;
 
-                *writer.text(entity, 1) =
-                    format!("You are out of oxygen",);
+                *writer.text(entity, 1) = format!("You are out of oxygen",);
             }
-        }
-        else {
+        } else {
             for entity in &query {
                 let display_time = t;
 
-                *writer.text(entity, 0) =
-                    format!("O2: {display_time:.0}\n",);
+                *writer.text(entity, 0) = format!("O2: {display_time:.0}\n",);
                 //        *writer.text(entity, 1) = format!("You are fucked");
             }
         }
     }
-
-
-
 }
 
 #[derive(Component)]

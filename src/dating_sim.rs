@@ -543,12 +543,12 @@ fn choose_move(
     if confirm {
         if let Some(choices) = context.selected_scene.choice.clone() {
             if context.cursor == 0 {
-                if (choices.0 .1).to_lowercase() == "return" {
+                if (choices.0.1).to_lowercase() == "return" {
                     tmp.set(DatingState::Chilling);
                 } else {
                     for scene in context.scenes.clone() {
-                        dbg!(scene.id == choices.0 .1);
-                        if scene.id == choices.0 .1 {
+                        dbg!(scene.id == choices.0.1);
+                        if scene.id == choices.0.1 {
                             context.selected_scene = scene;
                             tmp.set(DatingState::Talking);
                             break;
@@ -556,11 +556,11 @@ fn choose_move(
                     }
                 }
             } else {
-                if (choices.1 .1).to_lowercase() == "return" {
+                if (choices.1.1).to_lowercase() == "return" {
                     tmp.set(DatingState::Chilling);
                 } else {
                     for scene in context.scenes.clone() {
-                        if scene.id == choices.1 .1 {
+                        if scene.id == choices.1.1 {
                             context.selected_scene = scene;
                             tmp.set(DatingState::Talking);
                             break;
@@ -693,9 +693,11 @@ fn talking_action(
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
                     'outer: for branch in scene {
                         //                            flags: HashMap<String, isize>,
-                        if let Some(flag_name) = branch.0 .0 {
+                        if let Some(flag_name) = branch.0.0 {
                             if context.flags.contains_key(&flag_name)
-                                && context.flags[&flag_name] >= branch.0 .1
+                                && (context.flags[&flag_name] >= branch.0.1
+                                    || (context.flags[&flag_name] < 0
+                                        && context.flags[&flag_name] <= branch.0.1))
                             {
                                 //We fulfil the condition and move on
                                 if branch.1.to_lowercase() == "return" {

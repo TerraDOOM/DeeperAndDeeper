@@ -289,6 +289,16 @@ struct OutsideOST;
 #[derive(Component)]
 struct BackgroundExplore;
 
+fn pick_OST(index: usize) -> String {
+    let path = match index {
+        1 => "Music/Music_CaveTheme1.ogg".to_string(),
+        2 => "Music/Music_CaveTheme2.ogg".to_string(),
+        3 => "Music/Music_OutdoorTheme1.ogg".to_string(),
+        _ => "Music/Music_OutdoorTheme2.ogg".to_string(),
+    };
+    path
+}
+
 fn spawn_player(
     mut commands: Commands,
     mut rng: ResMut<Random>,
@@ -336,7 +346,7 @@ fn spawn_player(
         BackgroundExplore,
     ));
 
-    commands.spawn(AudioPlayer::new(server.load("Music/drip.ogg")));
+    commands.spawn(AudioPlayer::new(server.load(pick_OST(1))));
 
     let texture = server.load("Sprite/Player_Walking_Sprite-Sheet.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px

@@ -68,12 +68,13 @@ pub struct DatingScene {
     choice: Option<((String, String), (String, String))>,
     mission: Option<MissionType>,
     #[serde(default, rename = "scene")]
-    next_scene: Vec<(Vec<Check>, SceneID)>,
+    next_scene: Vec<(Cond, SceneID)>,
 }
 
 type Check = (Option<Flag>, isize);
 type SceneID = String;
 type Flag = String;
+type Cond = Vec<Check>;
 
 #[derive(Component)]
 struct FollowsMouse;
@@ -395,6 +396,9 @@ fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetS
     };
 }
 
+#[derive(Component)]
+struct EmptyScene;
+
 fn start_talking(
     mut commands: Commands,
     context: ResMut<DatingContext>,
@@ -402,6 +406,7 @@ fn start_talking(
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
+    println!("started talking");
     let window = windows.single();
     let width = window.resolution.width();
     let height = window.resolution.height();
@@ -422,21 +427,25 @@ fn start_talking(
     let talk_size = Vec2::new(width / 1.3, height / 3.0);
     let talk_position = Vec2::new(width / 8.0, -height / 2.7);
 
-    if (context.selected_scene.text.len() > 0) {
-        let dialogue = context.selected_scene.text[0].1.clone();
-        let person = context.selected_scene.text[0].0;
-        commands
-            .spawn((
-                Sprite {
-                    custom_size: Some(talk_size),
-                    image: asset_server.load("Textbox/Textbox.png"),
-                    ..Default::default()
-                },
-                Transform::from_translation(talk_position.extend(1.0)),
-                TalkObj,
-            ))
-            .with_children(|builder| {
-                builder.spawn((
+    let text = &context.selected_scene.text;
+
+    let first = text.first().cloned().unwrap_or((None, String::new()));
+
+    let dialogue = first.1.clone();
+    let person = first.0;
+    commands
+        .spawn((
+            Sprite {
+                custom_size: Some(talk_size),
+                image: asset_server.load("Textbox/Textbox.png"),
+                ..Default::default()
+            },
+            Transform::from_translation(talk_position.extend(1.0)),
+            TalkObj,
+        ))
+        .with_children(|builder| {
+            builder
+                .spawn((
                     TextColor(Color::srgb(0.0, 0.0, 0.0)),
                     Text2d::new(dialogue),
                     TextBox(0),
@@ -446,51 +455,50 @@ fn start_talking(
                     TextBounds::from(talk_size * 0.75),
                     // ensure the text is drawn on top of the box
                     Transform::from_translation(Vec3::Z),
+                ))
+                .insert_if(EmptyScene, || text.is_empty());
+        });
+
+    //Who is talking
+    if let Some(real_preson) = person {
+        commands
+            .spawn((
+                Sprite {
+                    custom_size: Some(talk_size),
+                    image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
+                    ..Default::default()
+                },
+                Transform::from_translation(
+                    (talk_position + Vec2::new(talk_size.x / 2.0 - width / 6.0, talk_size.y / 3.0))
+                        .extend(0.8),
+                ),
+                TalkObj,
+            ))
+            .with_children(|builder| {
+                builder.spawn((
+                    Text2d::new(format!("{:?}", real_preson)),
+                    TextColor(Color::srgb(0.0, 0.0, 0.0)),
+                    NameBox,
+                    slightly_smaller_text_font.clone(),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                    // Wrap text in the rectangle
+                    TextBounds::from(talk_size),
+                    // ensure the text is drawn on top of the box
+                    Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
                 ));
             });
 
-        //Who is talking
-        if let Some(real_preson) = person {
-            commands
-                .spawn((
-                    Sprite {
-                        custom_size: Some(talk_size),
-                        image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
-                        ..Default::default()
-                    },
-                    Transform::from_translation(
-                        (talk_position
-                            + Vec2::new(talk_size.x / 2.0 - width / 6.0, talk_size.y / 3.0))
-                        .extend(0.8),
-                    ),
-                    TalkObj,
-                ))
-                .with_children(|builder| {
-                    builder.spawn((
-                        Text2d::new(format!("{:?}", real_preson)),
-                        TextColor(Color::srgb(0.0, 0.0, 0.0)),
-                        NameBox,
-                        slightly_smaller_text_font.clone(),
-                        TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
-                        // Wrap text in the rectangle
-                        TextBounds::from(talk_size),
-                        // ensure the text is drawn on top of the box
-                        Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
-                    ));
-                });
-
-            //Look at sexy person talking
-            commands.spawn((
-                get_portrait(
-                    real_preson,
-                    Vec2::new(width / 2.0, width / 2.0),
-                    &asset_server,
-                ),
-                Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
-                TalkObj,
-                Portrait,
-            ));
-        }
+        //Look at sexy person talking
+        commands.spawn((
+            get_portrait(
+                real_preson,
+                Vec2::new(width / 2.0, width / 2.0),
+                &asset_server,
+            ),
+            Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
+            TalkObj,
+            Portrait,
+        ));
     }
 }
 
@@ -633,8 +641,9 @@ fn talking_action(
     time: Res<Time>,
     mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<
-        (&mut TextBox, &mut Text2d),
+    mut new_scene: Local<bool>,
+    query: Single<
+        (Entity, &mut TextBox, &mut Text2d, Option<&EmptyScene>),
         (With<TextBox>, Without<Portrait>, Without<NameBox>),
     >,
     mut name_query: Query<Entity, (With<NameBox>, Without<TextBox>)>,
@@ -649,157 +658,187 @@ fn talking_action(
         || keyboard_input.just_pressed(KeyCode::KeyZ);
     let escape = keyboard_input.just_pressed(KeyCode::Escape);
 
+    let (entity, mut textbox, mut text, is_empty) = query.into_inner();
+
     if escape {
         tmp.set(DatingState::Chilling);
-    } else if confirm {
-        for (mut textbox, mut text) in &mut query {
-            (textbox).0 += 1;
-            if (textbox).0 < context.selected_scene.text.len() {
-                let dialogue = context.selected_scene.text[(textbox).0].1.clone();
+    } else if confirm || *new_scene || is_empty.is_some() {
+        if confirm {
+            textbox.0 += 1;
+        }
+        if *new_scene {
+            *new_scene = false;
+        }
 
-                *text = Text2d::new(dialogue);
+        if textbox.0 < context.selected_scene.text.len() {
+            let dialogue = context.selected_scene.text[textbox.0].1.clone();
 
-                for entity in &mut name_query {
-                    commands.entity(entity).despawn_recursive();
-                }
-                for entity in &mut face_query {
-                    commands.entity(entity).despawn_recursive();
-                }
+            *text = Text2d::new(dialogue);
 
-                let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
-                let text_font = TextFont {
-                    font: font.clone(),
-                    font_size: 50.0,
-                    ..default()
-                };
+            for entity in &mut name_query {
+                commands.entity(entity).despawn_recursive();
+            }
+            for entity in &mut face_query {
+                commands.entity(entity).despawn_recursive();
+            }
 
-                let slightly_smaller_text_font = TextFont {
-                    font,
-                    font_size: 27.0,
-                    ..default()
-                };
+            let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
+            let text_font = TextFont {
+                font: font.clone(),
+                font_size: 50.0,
+                ..default()
+            };
 
-                if let Some(new_person) = context.selected_scene.text[(*textbox).0].0.clone() {
-                    let window = windows.single();
-                    let width = window.resolution.width();
-                    let height = window.resolution.height();
-                    let talk_size = Vec2::new(width / 1.3, height / 3.0);
-                    let talk_position = Vec2::new(width / 8.0, -height / 2.7);
-                    commands
-                        .spawn((
-                            Sprite {
-                                custom_size: Some(talk_size),
-                                image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
-                                ..Default::default()
-                            },
-                            Transform::from_translation(
-                                (talk_position
-                                    + Vec2::new(
-                                        talk_size.x / 2.0 - width / 6.0,
-                                        talk_size.y / 3.0,
-                                    ))
-                                .extend(0.8),
-                            ),
-                            TalkObj,
-                        ))
-                        .with_children(|builder| {
-                            builder.spawn((
-                                TextColor(Color::srgb(0.0, 0.0, 0.0)),
-                                Text2d::new(format!("{:?}", new_person)),
-                                NameBox,
-                                slightly_smaller_text_font.clone(),
-                                TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
-                                // Wrap text in the rectangle
-                                TextBounds::from(talk_size),
-                                // ensure the text is drawn on top of the box
-                                Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
-                            ));
-                        });
+            let slightly_smaller_text_font = TextFont {
+                font,
+                font_size: 27.0,
+                ..default()
+            };
 
-                    //Look at sexy person talking
-                    commands.spawn((
-                        get_portrait(
-                            new_person,
-                            Vec2::new(width / 2.0, width / 2.0),
-                            &asset_server,
-                        ),
+            if let Some(new_person) = dbg!(context.selected_scene.text[(*textbox).0].0.clone()) {
+                let window = windows.single();
+                let width = window.resolution.width();
+                let height = window.resolution.height();
+                let talk_size = Vec2::new(width / 1.3, height / 3.0);
+                let talk_position = Vec2::new(width / 8.0, -height / 2.7);
+                commands
+                    .spawn((
+                        Sprite {
+                            custom_size: Some(talk_size),
+                            image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
+                            ..Default::default()
+                        },
                         Transform::from_translation(
-                            Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5),
+                            (talk_position
+                                + Vec2::new(talk_size.x / 2.0 - width / 6.0, talk_size.y / 3.0))
+                            .extend(0.8),
                         ),
                         TalkObj,
-                        Portrait,
-                    ));
+                    ))
+                    .with_children(|builder| {
+                        builder.spawn((
+                            TextColor(Color::srgb(0.0, 0.0, 0.0)),
+                            Text2d::new(format!("{:?}", new_person)),
+                            NameBox,
+                            slightly_smaller_text_font.clone(),
+                            TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                            // Wrap text in the rectangle
+                            TextBounds::from(talk_size),
+                            // ensure the text is drawn on top of the box
+                            Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
+                        ));
+                    });
+
+                //Look at sexy person talking
+                commands.spawn((
+                    get_portrait(
+                        new_person,
+                        Vec2::new(width / 2.0, width / 2.0),
+                        &asset_server,
+                    ),
+                    Transform::from_translation(
+                        Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5),
+                    ),
+                    TalkObj,
+                    Portrait,
+                ));
+            }
+        } else {
+            //We have finished reading
+            dbg!(context.selected_scene.clone());
+
+            // add the mission
+            if let Some(mission) = context.selected_scene.mission {
+                context.gathered_mission.push(mission);
+            }
+
+            // set outcomes
+            if context.selected_scene.outcome.is_some() {
+                println!("Added flag, but not implemented")
+            }
+
+            fn check_cond(
+                flags: &mut HashMap<String, isize>,
+                flag: Option<&String>,
+                threshold: isize,
+            ) -> bool {
+                let Some(flag) = flag else {
+                    return true;
+                };
+
+                let value = *flags.get(flag).unwrap_or(&0);
+
+                if value >= threshold {
+                    return true;
+                }
+
+                if threshold < 0 && value < threshold.abs() {
+                    return true;
+                }
+                return false;
+            }
+
+            // if we have an option, start choosing
+            if context.selected_scene.choice.is_some() {
+                tmp.set(DatingState::Choosing);
+            }
+            // else, find more dialogue or quit
+            else if context.selected_scene.next_scene.len() > 0 {
+                for (cond, next_scene) in context.selected_scene.next_scene.clone() {
+                    println!("=== cond for {next_scene} ===");
+                    format_cond(&cond);
+
+                    let mut passed = true;
+
+                    for (ref flag, threshold) in cond {
+                        passed = passed && check_cond(&mut context.flags, flag.as_ref(), threshold);
+                    }
+
+                    if passed {
+                        println!("GOING TO {next_scene}");
+
+                        if next_scene.to_lowercase() == "return" {
+                            tmp.set(DatingState::Chilling);
+                            break;
+                        }
+
+                        for scene in &context.scenes {
+                            if scene.id == next_scene {
+                                *new_scene = true;
+                                context.selected_scene = scene.clone();
+                                commands
+                                    .entity(entity)
+                                    .remove::<EmptyScene>()
+                                    .insert_if(EmptyScene, || {
+                                        context.selected_scene.text.is_empty()
+                                    });
+                                textbox.0 = 0;
+                                let dialogue = context.selected_scene.text[0].1.clone();
+                                *text = Text2d::new(dialogue);
+                                break;
+                            };
+                        }
+                    }
                 }
             } else {
-                //We have finished reading
-                dbg!(context.selected_scene.clone());
-
-                // add the mission
-                if let Some(mission) = context.selected_scene.mission {
-                    context.gathered_mission.push(mission);
-                }
-
-                // set outcomes
-                if context.selected_scene.outcome.is_some() {
-                    println!("Added flag, but not implemented")
-                }
-
-                fn check_cond(
-                    flags: &mut HashMap<String, isize>,
-                    flag: Option<&String>,
-                    threshold: isize,
-                ) -> bool {
-                    let Some(flag) = flag else {
-                        return true;
-                    };
-
-                    let value = *flags.get(flag).unwrap_or(&0);
-
-                    if value >= threshold {
-                        return true;
-                    }
-
-                    if threshold < 0 && value < threshold.abs() {
-                        return true;
-                    }
-                    return false;
-                }
-
-                // if we have an option, start choosing
-                if context.selected_scene.choice.is_some() {
-                    tmp.set(DatingState::Choosing);
-                }
-                // else, find more dialogue or quit
-                else if context.selected_scene.next_scene.len() > 0 {
-                    for (cond, next_scene) in context.selected_scene.next_scene.clone() {
-                        let mut passed = true;
-
-                        for (ref flag, threshold) in cond {
-                            passed =
-                                passed && check_cond(&mut context.flags, flag.as_ref(), threshold);
-                        }
-
-                        if passed {
-                            if next_scene.to_lowercase() == "return" {
-                                tmp.set(DatingState::Chilling);
-                                break;
-                            }
-
-                            for scene in &context.scenes {
-                                if scene.id == next_scene {
-                                    context.selected_scene = scene.clone();
-                                    (textbox).0 = 0;
-                                    let dialogue = context.selected_scene.text[0].1.clone();
-                                    *text = Text2d::new(dialogue);
-                                    break;
-                                };
-                            }
-                        }
-                    }
-                } else {
-                    tmp.set(DatingState::Chilling);
-                }
+                tmp.set(DatingState::Chilling);
             }
+        }
+    }
+}
+
+fn format_cond(cond: &Cond) {
+    for (flag, threshold) in cond {
+        if flag.is_none() {
+            println!("(always true)");
+        } else if *threshold > 0 {
+            println!("{} >= {threshold}", flag.as_deref().unwrap_or("null"),)
+        } else {
+            println!(
+                "{} < {}",
+                flag.as_deref().unwrap_or("null"),
+                threshold.abs()
+            )
         }
     }
 }
@@ -851,10 +890,11 @@ fn cursor_action(
 
             for scene in context.scenes.clone() {
                 if scene.id == talk_key {
-                    dbg!(context.selected_scene = scene);
+                    context.selected_scene = scene;
                     break;
                 };
             }
+            println!("set talking");
             tmp.set(DatingState::Talking);
         }
     }

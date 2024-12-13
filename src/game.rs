@@ -8,7 +8,7 @@ use bevy::{
     ui::widget::TextUiWriter,
     window::PresentMode,
 };
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{prelude::*, rapier::geometry::CollisionEventFlags};
 use image::{self, GenericImageView};
 
 use std::{collections::VecDeque, time::Duration};
@@ -53,9 +53,15 @@ pub fn game_plugin(app: &mut App) {
                 update_camera,
                 read_character_controller_collisions,
                 change_text_system,
+                on_pickup,
             )
                 .run_if(in_state(GameState::Explore)),
         )
+        .add_systems(
+            PostUpdate,
+            check_triggers.run_if(in_state(GameState::Explore)),
+        )
+        .insert_resource(Events::<ItemPickupEvent>::default())
         .add_systems(OnExit(GameState::Explore), despawn_screen::<OnExploration>);
 }
 
@@ -330,7 +336,7 @@ pub fn is_exposed_and_solid(tiles: &Vec<[Tile; 1000]>, x: usize, y: usize) -> bo
     }
 }
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 struct ItemPickupEvent {
     item_id: usize,
 }
@@ -361,13 +367,28 @@ impl Default for Collectable {
     }
 }
 
+fn on_pickup(mut reader: EventReader<ItemPickupEvent>) {
+    for pickup in reader.read() {
+        println!("picked up {:?}", pickup);
+    }
+}
+
 fn check_triggers(
+    mut commands: Commands,
     mut reader: EventReader<CollisionEvent>,
     mut writer: EventWriter<ItemPickupEvent>,
     sensors: Query<(Entity, &Item), With<Sensor>>,
 ) {
     for collision in reader.read() {
-        println!("Collision: {:?}", collision);
+        if let CollisionEvent::Started(a, b, flags) = collision {
+            if !flags.contains(CollisionEventFlags::SENSOR) {
+                continue;
+            }
+            if let Ok((entity, item)) = sensors.get(*a).or(sensors.get(*b)) {
+                writer.send(ItemPickupEvent { item_id: item.id });
+                commands.entity(entity).despawn();
+            }
+        }
     }
 }
 
@@ -383,7 +404,7 @@ fn player_movement(
         let right = keyboard_input.any_pressed([KeyCode::KeyD, KeyCode::ArrowRight]);
 
         if up && player.grounded {
-            player.velocity += Vec2::new(0.0, 100.0)
+            player.velocity += Vec2::new(0.0, 150.0)
         }
 
         let x_axis = -(left as i8) + right as i8;

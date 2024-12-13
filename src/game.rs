@@ -420,7 +420,7 @@ fn spawn_player(
             trigger: TriggerComponent {
                 id: TriggerType::ItemPickup,
                 delete_on_trigger: true,
-                flags: Some("GreenhouseCollected".to_string()),
+                flags: Some("GreenhouseFixed".to_string()),
             },
             ..default()
         });

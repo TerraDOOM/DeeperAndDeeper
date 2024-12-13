@@ -371,40 +371,40 @@ fn get_portrait(
     flags: HashMap<String, isize>,
 ) -> Sprite {
     return match character {
-        CharactersType::Joe if flags.get("JoeDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Joe if !flags.get("JoeDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Janitor Joe-Recovered.png"),
             ..Default::default()
         },
-        CharactersType::Jule if flags.get("JuleDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Jule if !flags.get("JuleDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_General_Jule.png"),
             ..Default::default()
         },
-        CharactersType::Fredrick if flags.get("FredrickDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Fredrick if !flags.get("FredrickDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
             ..Default::default()
         },
 
-        CharactersType::Diedrick if flags.get("DiedrickDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Diedrick if !flags.get("DiedrickDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
             ..Default::default()
         },
 
-        CharactersType::Carle if flags.get("CarleDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Carle if !flags.get("CarleDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Carly.png"),
 
             ..Default::default()
         },
-        CharactersType::Liv if flags.get("LivDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Liv if !flags.get("LivDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_Liv.png"),
             ..Default::default()
         },
-        CharactersType::Cat if flags.get("CatDead").is_some_and(|x| *x == 1) => Sprite {
+        CharactersType::Cat if !flags.get("CatDead").is_some_and(|x| *x == 1) => Sprite {
             custom_size: Some(size),
             image: asset_server.load("Portraits/Character_cat.png"),
             ..Default::default()
@@ -414,7 +414,12 @@ fn get_portrait(
             image: asset_server.load("Portraits/Character_Player.png"),
             ..Default::default()
         },
-        _ => Sprite::from_color(Color::srgb(0.25, 0.25, 0.75), size),
+        _ => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Liv.png"),
+            color: Color::srgba(0.00, 0.00, 0.00, 0.8),
+            ..default()
+        },
     };
 }
 

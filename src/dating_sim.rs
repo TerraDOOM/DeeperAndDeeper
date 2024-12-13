@@ -62,13 +62,18 @@ enum DatingState {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct DatingScene {
-    id: String,
+    id: SceneID,
     text: Vec<(Option<CharactersType>, String)>,
-    outcome: Option<Vec<(String, isize)>>,
+    outcome: Option<Vec<(Flag, isize)>>,
     choice: Option<((String, String), (String, String))>,
     mission: Option<MissionType>,
-    scene: Option<Vec<(Vec<(Option<String>, isize)>, String)>>,
+    #[serde(default, rename = "scene")]
+    next_scene: Vec<(Vec<Check>, SceneID)>,
 }
+
+type Check = (Option<Flag>, isize);
+type SceneID = String;
+type Flag = String;
 
 #[derive(Component)]
 struct FollowsMouse;
@@ -719,72 +724,66 @@ fn talking_action(
             } else {
                 //We have finished reading
                 dbg!(context.selected_scene.clone());
+
+                // add the mission
                 if let Some(mission) = context.selected_scene.mission {
                     context.gathered_mission.push(mission);
                 }
+
+                // set outcomes
                 if context.selected_scene.outcome.is_some() {
                     println!("Added flag, but not implemented")
                 }
+
+                fn check_cond(
+                    flags: &mut HashMap<String, isize>,
+                    flag: Option<&String>,
+                    threshold: isize,
+                ) -> bool {
+                    let Some(flag) = flag else {
+                        return true;
+                    };
+
+                    let value = *flags.get(flag).unwrap_or(&0);
+
+                    if value >= threshold {
+                        return true;
+                    }
+
+                    if threshold < 0 && value < threshold.abs() {
+                        return true;
+                    }
+                    return false;
+                }
+
+                // if we have an option, start choosing
                 if context.selected_scene.choice.is_some() {
                     tmp.set(DatingState::Choosing);
-                    //context.selected_scene = Some(context.selected_scene.choice)[0][1];
-                } else if let Some(scene) = context.selected_scene.scene.clone() {
-                    'outer: for branch in scene {
-                        for check in branch {
-                            if let Some(flag_name) = branch.0 .0 {
-                                if context.flags.contains_key(&flag_name)
-                                    && context.flags[&flag_name] >= branch.0 .1
-                                {
-                                    //We fulfil the condition and move on
-                                    if branch.1.to_lowercase() == "return" {
-                                        tmp.set(DatingState::Chilling);
-                                        break 'outer;
-                                    }
-                                    for scene in context.scenes.clone() {
-                                        if scene.id == branch.1 {
-                                            context.selected_scene = scene;
-                                            (textbox).0 = 0;
-                                            let dialogue = context.selected_scene.text[0].1.clone();
-                                            *text = Text2d::new(dialogue);
-                                            break 'outer;
-                                        };
-                                    }
-                                } else if (branch.0 .1 < 0
-                                    && !context.flags.contains_key(&flag_name))
-                                    || (branch.0 .1 < 0
-                                        && context.flags.contains_key(&flag_name)
-                                        && context.flags[&flag_name] >= branch.0 .1.abs())
-                                {
-                                    //We fulfil the condition and move on
-                                    if branch.1.to_lowercase() == "return" {
-                                        tmp.set(DatingState::Chilling);
-                                        break 'outer;
-                                    }
-                                    for scene in context.scenes.clone() {
-                                        if scene.id == branch.1 {
-                                            context.selected_scene = scene;
-                                            (textbox).0 = 0;
-                                            let dialogue = context.selected_scene.text[0].1.clone();
-                                            *text = Text2d::new(dialogue);
-                                            break 'outer;
-                                        };
-                                    }
-                                }
-                            } else {
-                                //We have a always true branch
-                                if branch.1.to_lowercase() == "return" {
-                                    tmp.set(DatingState::Chilling);
-                                    break 'outer;
-                                }
-                                for scene in context.scenes.clone() {
-                                    if scene.id == branch.1 {
-                                        dbg!(context.selected_scene = scene);
-                                        (textbox).0 = 0;
-                                        let dialogue = context.selected_scene.text[0].1.clone();
-                                        *text = Text2d::new(dialogue);
-                                        break 'outer;
-                                    };
-                                }
+                }
+                // else, find more dialogue or quit
+                else if context.selected_scene.next_scene.len() > 0 {
+                    for (cond, next_scene) in context.selected_scene.next_scene.clone() {
+                        let mut passed = true;
+
+                        for (ref flag, threshold) in cond {
+                            passed =
+                                passed && check_cond(&mut context.flags, flag.as_ref(), threshold);
+                        }
+
+                        if passed {
+                            if next_scene.to_lowercase() == "return" {
+                                tmp.set(DatingState::Chilling);
+                                break;
+                            }
+
+                            for scene in &context.scenes {
+                                if scene.id == next_scene {
+                                    context.selected_scene = scene.clone();
+                                    (textbox).0 = 0;
+                                    let dialogue = context.selected_scene.text[0].1.clone();
+                                    *text = Text2d::new(dialogue);
+                                    break;
+                                };
                             }
                         }
                     }

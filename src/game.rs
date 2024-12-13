@@ -286,6 +286,9 @@ impl Tile {
 #[derive(Component)]
 struct OutsideOST;
 
+#[derive(Component)]
+struct BackgroundExplore;
+
 fn spawn_player(
     mut commands: Commands,
     mut rng: ResMut<Random>,
@@ -294,6 +297,7 @@ fn spawn_player(
     maps: Res<Assets<MapAsset>>,
     mut rapier_config: Query<&mut RapierConfiguration>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    windows: Query<&mut Window>,
 ) {
     let mut rapier_config = rapier_config.single_mut();
     // Set gravity to 0.0 and spawn camera.
@@ -305,6 +309,32 @@ fn spawn_player(
     //     AudioPlayer::new(server.load("sounds/hev charger drip car.mp3")),
     //     OutsideOST,
     // ));
+
+    let width = windows.single().resolution.width();
+    let height = windows.single().resolution.height();
+
+    let background_size = Some(Vec2::new(width, height));
+    let background_position = Transform::from_xyz(6800.0, -7500.0, -10.0);
+
+    let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_1000X600.png");
+    // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
+    let layout = TextureAtlasLayout::from_grid(UVec2::splat(600), 8, 1, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let animation_config_1 = AnimationConfig::new(1, 8, 10);
+
+    let enc = commands.spawn((
+        Sprite {
+            image: texture.clone(),
+            custom_size: background_size,
+            texture_atlas: Some(TextureAtlas {
+                layout: texture_atlas_layout.clone(),
+                index: animation_config_1.first_sprite_index,
+            }),
+            ..Default::default()
+        },
+        background_position,
+        BackgroundExplore,
+    ));
 
     commands.spawn(AudioPlayer::new(server.load("Music/drip.ogg")));
 

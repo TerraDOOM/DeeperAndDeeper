@@ -234,8 +234,8 @@ fn on_dating_sim(
     commands.spawn(Camera2d);
 
     commands.spawn((
-        AudioPlayer::new(asset_server.load("Music/hev charger drip car.ogg")),
-        MyOST,
+        AudioPlayer::new(asset_server.load("Music/Music_InShip.ogg")),
+        DatingObj,
     ));
 
     tmp.set(DatingState::Chilling);

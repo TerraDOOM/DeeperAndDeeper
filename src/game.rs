@@ -17,6 +17,8 @@ use rand::prelude::*;
 
 pub mod floodfill;
 
+use self::floodfill::Floodfill;
+
 use super::{despawn_screen, GameState};
 
 #[derive(Resource)]
@@ -45,7 +47,7 @@ pub fn game_plugin(app: &mut App) {
     };
 
     app.add_plugins((RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),))
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .init_asset_loader::<MapLoader>()
         .init_asset::<MapAsset>()
         .insert_resource(obj)
@@ -97,10 +99,11 @@ pub struct Objectives {
 #[derive(Component)]
 struct OnExploration;
 
-#[derive(Asset, TypePath, Debug)]
+#[derive(Asset, TypePath)]
 pub struct MapAsset {
     // 1000x1000
     pub tiles: Vec<[Tile; 1000]>,
+    floodfill: Floodfill,
 }
 
 #[derive(Component)]
@@ -125,6 +128,8 @@ impl ExplorationMap {
 struct TileSprites {
     rock: Sprite,
     nothing: Sprite,
+    iron: Sprite,
+
     error: Sprite,
 }
 
@@ -146,7 +151,9 @@ impl MapAsset {
             tiles.push(next_row);
         }
 
-        MapAsset { tiles }
+        let floodfill = floodfill::floodfill_all(&tiles);
+
+        MapAsset { tiles, floodfill }
     }
 }
 
@@ -260,7 +267,7 @@ pub fn spawn_player(
 
     let sprite_size = 100.0;
 
-    // Spawn entity with `Player` struct as a component for access in movement query.
+    // player init
     commands
         .spawn((
             Sprite {
@@ -271,17 +278,17 @@ pub fn spawn_player(
             },
             RigidBody::KinematicPositionBased,
             TransformBundle::from(Transform::from_xyz(200.0, -7000.0, 0.0)),
-            Collider::cuboid(sprite_size / 2., sprite_size / 2.0),
+            Collider::ball(sprite_size / 2.),
             Player {
                 grounded: false,
                 speed: 10.0,
                 velocity: Vec2::ZERO,
-                last_pos: Vec2::ZERO,
+                last_pos: Vec2::new(200.0, -7000.0),
             },
             OnExploration,
         ))
         .insert(KinematicCharacterController {
-            snap_to_ground: Some(CharacterLength::Absolute(0.1)),
+            // snap_to_ground: Some(CharacterLength::Absolute(4.0)),
             offset: CharacterLength::Absolute(1.0),
             autostep: Some(CharacterAutostep {
                 min_width: CharacterLength::Absolute(1.0),
@@ -306,7 +313,10 @@ pub fn spawn_player(
         ..Default::default()
     });
 
-    let tiles: &Vec<[Tile; 1000]> = &maps.get(&map.handle).unwrap().tiles;
+    let MapAsset {
+        ref tiles,
+        floodfill: ref flood,
+    } = &maps.get(&map.handle).unwrap();
 
     let flood = floodfill::floodfill_all(tiles);
     for region in flood.regions {
@@ -418,16 +428,25 @@ fn check_triggers(
 fn player_movement(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut jump_buffer: Local<usize>,
     mut player_info: Query<(&mut Player, &mut KinematicCharacterController)>,
 ) {
+    *jump_buffer = jump_buffer.saturating_sub(1);
+
     for (mut player, mut controller) in &mut player_info {
         let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
         let down = keyboard_input.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]);
         let left = keyboard_input.any_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]);
         let right = keyboard_input.any_pressed([KeyCode::KeyD, KeyCode::ArrowRight]);
+        if keyboard_input.just_pressed(KeyCode::KeyW) && !player.grounded {
+            *jump_buffer = 6;
+        }
 
-        if up && player.grounded {
-            player.velocity += Vec2::new(0.0, 150.0)
+        // jump
+        if (keyboard_input.just_pressed(KeyCode::KeyW) || *jump_buffer > 0) && player.grounded {
+            player.velocity += Vec2::new(0.0, 100.0);
+            player.grounded = false;
+            *jump_buffer = 0;
         }
 
         let x_axis = -(left as i8) + right as i8;

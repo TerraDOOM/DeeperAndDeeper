@@ -71,6 +71,8 @@ pub fn game_plugin(app: &mut App) {
                 change_text_system,
                 on_pickup,
                 time_pressure,
+                execute_animations,
+                trigger_animation,
             )
                 .run_if(in_state(GameState::Explore)),
         )
@@ -281,6 +283,9 @@ impl Tile {
     }
 }
 
+#[derive(Component)]
+struct OutsideOST;
+
 fn spawn_player(
     mut commands: Commands,
     mut rng: ResMut<Random>,
@@ -288,6 +293,7 @@ fn spawn_player(
     map: Res<ExplorationMap>,
     maps: Res<Assets<MapAsset>>,
     mut rapier_config: Query<&mut RapierConfiguration>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let mut rapier_config = rapier_config.single_mut();
     // Set gravity to 0.0 and spawn camera.
@@ -295,12 +301,29 @@ fn spawn_player(
 
     let sprite_size = 100.0;
 
+    // commands.spawn((
+    //     AudioPlayer::new(server.load("sounds/hev charger drip car.mp3")),
+    //     OutsideOST,
+    // ));
+
+    commands.spawn(AudioPlayer::new(server.load("Music/drip.ogg")));
+
+    let texture = server.load("Sprite/Player_Walking_Sprite-Sheet.png");
+    // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
+    let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 4, 1, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let animation_config_1 = AnimationConfig::new(1, 4, 10);
+
     // player init
     commands
         .spawn((
             Sprite {
                 custom_size: Some(Vec2::new(sprite_size, sprite_size)),
-                image: server.load("mascot.png"),
+                image: texture.clone(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: texture_atlas_layout.clone(),
+                    index: animation_config_1.first_sprite_index,
+                }),
                 image_mode: SpriteImageMode::Auto,
                 ..Default::default()
             },
@@ -313,6 +336,7 @@ fn spawn_player(
                 velocity: Vec2::ZERO,
                 last_pos: Vec2::new(200.0, -7000.0),
             },
+            animation_config_1,
             OnExploration,
         ))
         .insert(KinematicCharacterController {
@@ -332,12 +356,12 @@ fn spawn_player(
         sprite: Sprite {
             image: server.load("Portraits/Character_cat.png"),
             custom_size: Some(Vec2::new(sprite_size, sprite_size)),
-            ..Default::default()
+            ..default()
         },
-
-        ..Default::default()
+        ..default()
     });
 
+    // the second (right-hand) sprite runs at 20 FPS
     let MapAsset {
         ref tiles,
         floodfill: ref flood,
@@ -399,13 +423,14 @@ fn create_spaceship(mut commands: Commands, server: ResMut<AssetServer>) {
     commands.spawn(WorldTrigger {
         sprite: Sprite {
             image: server.load("Sprite/SpacShip_Sprite.png"),
-            custom_size: Some(Vec2::new(300.0, 300.0)),
+            custom_size: Some(Vec2::new(1600.0, 800.0)),
             ..default()
         },
-        transform: Transform::from_xyz(6500.0, -7500.0, 0.0),
+        transform: Transform::from_xyz(6000.0, -7400.0, 0.0),
         collider: Collider::cuboid(150.0, 150.0),
         trigger: TriggerComponent {
             id: TriggerType::Ship,
+            delete_on_trigger: false,
         },
         ..default()
     });
@@ -429,6 +454,7 @@ enum TriggerType {
 #[derive(Component, Default)]
 struct TriggerComponent {
     id: TriggerType,
+    delete_on_trigger: bool,
 }
 
 #[derive(Bundle)]
@@ -451,6 +477,7 @@ impl Default for WorldTrigger {
             active_events: ActiveEvents::COLLISION_EVENTS,
             trigger: TriggerComponent {
                 id: TriggerType::None,
+                delete_on_trigger: true,
             },
         }
     }
@@ -480,7 +507,9 @@ fn check_triggers(
                     trigger_type: trigger.id,
                     message: (),
                 });
-                commands.entity(entity).despawn();
+                if trigger.delete_on_trigger {
+                    commands.entity(entity).despawn();
+                }
             }
         }
     }
@@ -818,5 +847,55 @@ fn std_deviation(data: &[f64]) -> Option<f64> {
             Some(variance.sqrt())
         }
         _ => None,
+    }
+}
+
+fn execute_animations(time: Res<Time>, mut query: Query<(&mut AnimationConfig, &mut Sprite)>) {
+    for (mut config, mut sprite) in &mut query {
+        // we track how long the current sprite has been displayed for
+        config.frame_timer.tick(time.delta());
+
+        // If it has been displayed for the user-defined amount of time (fps)...
+        if config.frame_timer.just_finished() {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                if atlas.index == config.last_sprite_index {
+                    // ...and it IS the last frame, then we move back to the first frame and stop.
+                    atlas.index = config.first_sprite_index;
+                } else {
+                    // ...and it is NOT the last frame, then we move to the next frame...
+                    atlas.index += 1;
+                    // ...and reset the frame timer to start counting all over again
+                    config.frame_timer = AnimationConfig::timer_from_fps(config.fps);
+                }
+            }
+        }
+    }
+}
+
+#[derive(Component)]
+struct AnimationConfig {
+    first_sprite_index: usize,
+    last_sprite_index: usize,
+    fps: u8,
+    frame_timer: Timer,
+}
+
+fn trigger_animation(mut animation: Single<&mut AnimationConfig, With<Player>>) {
+    // we create a new timer when the animation is triggered
+    animation.frame_timer = AnimationConfig::timer_from_fps(animation.fps);
+}
+
+impl AnimationConfig {
+    fn new(first: usize, last: usize, fps: u8) -> Self {
+        Self {
+            first_sprite_index: first,
+            last_sprite_index: last,
+            fps,
+            frame_timer: Self::timer_from_fps(fps),
+        }
+    }
+
+    fn timer_from_fps(fps: u8) -> Timer {
+        Timer::new(Duration::from_secs_f32(1.0 / (fps as f32)), TimerMode::Once)
     }
 }

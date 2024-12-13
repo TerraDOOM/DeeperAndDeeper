@@ -63,15 +63,12 @@ pub fn get_verts(region: &Region) -> Vec<(usize, usize)> {
         }
         cur = add_dir(cur, dir);
         if is_solid(cur, left(dir)) {
-            println!("left {cur:?} {dir:?}");
             // we can go left
             verts.push(cur);
             dir = left(dir);
         } else if is_solid(cur, dir) {
-            println!("forw {cur:?} {dir:?}");
             // we can go forward
         } else {
-            println!("right {cur:?} {dir:?}");
             verts.push(cur);
             dir = right(dir);
         }
@@ -95,7 +92,6 @@ pub fn floodfill_all(tiles: &Vec<[Tile; 1000]>) -> Floodfill {
             let p = (x, y);
             if lookup(p).is_solid() {
                 if regions.iter().all(|r| !r.members.contains(&p)) {
-                    println!("filling from {:?}", p);
                     regions.push(fill(p, tiles));
                 }
             }

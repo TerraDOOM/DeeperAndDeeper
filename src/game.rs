@@ -2,21 +2,24 @@ use bevy::{
     asset::{AssetLoader, LoadContext, io::Reader},
     prelude::*,
 };
+use bevy::{
+    color::palettes::css::*,
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    ui::widget::TextUiWriter,
+    window::PresentMode,
+};
 use bevy_rapier2d::prelude::*;
 use image::{self, GenericImageView};
+
+use std::{collections::VecDeque, time::Duration};
 
 pub mod floodfill;
 
 use super::{GameState, despawn_screen};
 
 pub fn game_plugin(app: &mut App) {
-    {
-        use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-        app.add_plugins((
-            FrameTimeDiagnosticsPlugin::default(),
-            LogDiagnosticsPlugin::default(),
-        ));
-    }
+    use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
     app.add_plugins((RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),))
         .add_plugins(RapierDebugRenderPlugin::default())
@@ -25,7 +28,7 @@ pub fn game_plugin(app: &mut App) {
         .add_systems(Startup, load_map)
         .add_systems(
             OnEnter(GameState::Explore),
-            (spawn_player, start_exploration),
+            (spawn_player, start_exploration, debugging_info),
         )
         .add_systems(
             Update,
@@ -33,6 +36,7 @@ pub fn game_plugin(app: &mut App) {
                 player_movement,
                 update_camera,
                 read_character_controller_collisions,
+                change_text_system,
             )
                 .run_if(in_state(GameState::Explore)),
         )
@@ -40,11 +44,12 @@ pub fn game_plugin(app: &mut App) {
 }
 
 // The float value is the player movement speed in 'pixels/second'.
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Player {
     speed: f32,
     velocity: Vec2,
     grounded: bool,
+    last_pos: Vec2,
 }
 
 #[derive(Component)]
@@ -217,6 +222,7 @@ pub fn spawn_player(
                 grounded: false,
                 speed: 10.0,
                 velocity: Vec2::ZERO,
+                last_pos: Vec2::ZERO,
             },
             OnExploration,
         ))
@@ -299,9 +305,11 @@ fn player_movement(
         }
 
         if !player.grounded {
-            player.velocity += Vec2::new(0.0, -400.0) * time.delta_secs();
+            player.velocity += Vec2::new(0.0, -250.0) * time.delta_secs();
+            let drag = player.velocity * 0.02;
+            player.velocity -= drag;
         }
-        player.velocity = player.velocity.clamp_length_max(100.);
+        player.velocity = player.velocity.clamp_length_max(300.);
 
         move_delta += player.velocity * time.delta_secs();
 
@@ -331,7 +339,7 @@ fn update_camera(
     // between the camera position and the player position on the x and y axes.
     camera
         .translation
-        .smooth_nudge(&direction, 2.0, time.delta_secs());
+        .smooth_nudge(&direction, 10.0, time.delta_secs());
 }
 
 fn read_character_controller_collisions(
@@ -339,7 +347,7 @@ fn read_character_controller_collisions(
     bodies: Query<&RigidBody>,
     mut player: Query<(&mut Player, &mut Transform), With<Player>>,
 ) {
-    let Ok((mut player, _transform)) = player.get_single_mut() else {
+    let Ok((mut player, mut transform)) = player.get_single_mut() else {
         return;
     };
 
@@ -347,8 +355,154 @@ fn read_character_controller_collisions(
         return;
     };
 
-    player.grounded = output.grounded;
-    if player.grounded {
+    // we left the ground
+    if player.grounded && !output.grounded {
+        player.last_pos = transform.translation.xy();
+    }
+
+    // we hit the ground
+    if !player.grounded && output.grounded {
+        if player.velocity.y <= -165.0 {
+            transform.translation = player.last_pos.extend(0.0);
+        }
         player.velocity.y = player.velocity.y.max(0.0);
+    }
+
+    player.grounded = output.grounded;
+}
+
+fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
+    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+
+    let root_uinode = commands
+        .spawn(Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            justify_content: JustifyContent::SpaceBetween,
+            ..default()
+        })
+        .id();
+
+    let right_column = commands
+        .spawn(Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::End,
+            flex_grow: 1.,
+            margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
+            ..default()
+        })
+        .with_children(|builder| {
+            builder
+                .spawn((
+                    Text::default(),
+                    TextFont {
+                        font: font.clone(),
+                        font_size: 21.0,
+                        ..default()
+                    },
+                    TextChanges,
+                    BackgroundColor(BLACK.into()),
+                ))
+                .with_children(|p| {
+                    p.spawn((
+                        TextSpan::default(),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 21.0,
+                            ..default()
+                        },
+                        TextColor(WHITE.into()),
+                    ));
+                    p.spawn((
+                        TextSpan::default(),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 21.0,
+                            ..default()
+                        },
+                        TextColor(WHITE.into()),
+                    ));
+                });
+        })
+        .id();
+    commands.entity(root_uinode).add_children(&[right_column]);
+}
+
+#[derive(Component)]
+struct TextChanges;
+
+fn change_text_system(
+    mut fps_history: Local<VecDeque<f64>>,
+    mut time_history: Local<VecDeque<Duration>>,
+    time: Res<Time>,
+    diagnostics: Res<DiagnosticsStore>,
+    query: Query<Entity, With<TextChanges>>,
+    player: Query<&Player>,
+    mut writer: TextUiWriter,
+) {
+    time_history.push_front(time.elapsed());
+    time_history.truncate(120);
+    let avg_fps = (time_history.len() as f64)
+        / (time_history.front().copied().unwrap_or_default()
+            - time_history.back().copied().unwrap_or_default())
+        .as_secs_f64()
+        .max(0.0001);
+    fps_history.push_front(avg_fps);
+    fps_history.truncate(120);
+    let fps_variance = std_deviation(fps_history.make_contiguous()).unwrap_or_default();
+
+    for entity in &query {
+        let mut fps = 0.0;
+        if let Some(fps_diagnostic) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+            if let Some(fps_smoothed) = fps_diagnostic.smoothed() {
+                fps = fps_smoothed;
+            }
+        }
+
+        let mut frame_time = time.delta_secs_f64();
+        if let Some(frame_time_diagnostic) =
+            diagnostics.get(&FrameTimeDiagnosticsPlugin::FRAME_TIME)
+        {
+            if let Some(frame_time_smoothed) = frame_time_diagnostic.smoothed() {
+                frame_time = frame_time_smoothed;
+            }
+        }
+
+        *writer.text(entity, 0) =
+            format!("{avg_fps:.1} avg fps, {fps_variance:.1} frametime variance",);
+        *writer.text(entity, 1) = format!(
+            "\n{:.0} px/s",
+            player.get_single().unwrap().velocity.length()
+        );
+    }
+}
+
+fn mean(data: &[f64]) -> Option<f64> {
+    let sum = data.iter().sum::<f64>();
+    let count = data.len();
+
+    match count {
+        positive if positive > 0 => Some(sum / count as f64),
+        _ => None,
+    }
+}
+
+fn std_deviation(data: &[f64]) -> Option<f64> {
+    match (mean(data), data.len()) {
+        (Some(data_mean), count) if count > 0 => {
+            let variance = data
+                .iter()
+                .map(|value| {
+                    let diff = data_mean - *value;
+
+                    diff * diff
+                })
+                .sum::<f64>()
+                / count as f64;
+
+            Some(variance.sqrt())
+        }
+        _ => None,
     }
 }

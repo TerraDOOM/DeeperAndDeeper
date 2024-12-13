@@ -253,6 +253,7 @@
         ["Jule", "Jesus, Joe."],
         ["You", "Anyway."]
       ],
+      "outcome": [["EarlyGreenhouse", 1]],
       "choices": [["Fix the greenhouse!", "GreenhouseDay1"], ["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
     },
     { 
@@ -273,12 +274,14 @@
         ["Carle", "See ya tomorrow, cap'n"],
         ["You", "And you as well."]
       ],
-      "outcome": [["GreenhouseFixed", 1]]
+      "outcome": [["GreenhouseFixed", 1]],
+      "scene": [[null, 0], "Pass"]
     },
     { 
       "id": "Day1Scan",
       "text": [[null, "This should tell you where the important objectives are."]],
-      "outcome": [["PerformedScan", 1]]
+      "outcome": [["PerformedScan", 1]],
+      "scene": [[null, 0], "Pass"]
     },
     { 
       "id": "Day1AirFixed",
@@ -309,7 +312,8 @@
         ["Joe", "Nevermind. I'm heading to bed. Sleep well, we'll work early next morning."],
         ["You", "Right."]
       ],
-      "outcome": [["FiltrationFixed", 1]]
+      "outcome": [["FiltrationFixed", 1]],
+      "scene": [[null, 0], "Pass"]
     },
     { 
       "id": "Day1AutoDoc",
@@ -328,11 +332,54 @@
         ["Diedrick", "You're surely not arguing with your onboard doctor on matters of medicine?"],
         ["You", "...Touché."]
       ],
-      "outcome": [["AutoDocFixed", 1]]
+      "outcome": [["AutoDocFixed", 1]],
+      "scene": [[null, 0], "Pass"]
     },
     { 
       "id": "Day2Morning",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [],
+      "scene": [
+        [["GreenhouseFixed", 1], "NickOfTime"],
+        [["EarlyGreenhouse", 1], "WastedPotential"],
+        [[null, 0], "LostFood"]
+      ]
+    },
+    { 
+      "id": "NickOfTime",
+      "text": [
+        [null, "You arrive to the communal living room to find that everybody's already up. How come you're always last to find things out?"],
+        ["Joe", "...the building materials, the medicinal supplies, the fuel, and most importantly, the disinfectant."],
+        ["You", "What did I miss?"],
+        ["Jule", "Secondary cargo hold had a leak, so that strange pollen has now gotten all over everything."],
+        ["Carle", "But the greenhouse survived! Food's not an issue."],
+        ["Joe", "Thank god someone didn't \"just get the tuna\""],
+        ["You", "More on-topic, please."],
+        ["Joe", "Air filters last at best a week until we fix the disinfector."],
+        ["Jule", "Fuel is completely ruined, so we need to extract new oil from the planet."],
+        ["Diedrick", "Since Liv seems to not be mentioning it..."],
+        ["Liv", "All our lives are in danger, not just mine."],
+        ["Diedrick", "Inhaler supply is dangerously low. A day or two away from asphyxiation being a real danger."],
+        ["Liv", "Right, but we do need to get off this planet, and I don't want to jeopardize that."],
+        ["Joe", "Speaking of, the engine is deteriorating rapidly. If we leave it for a week or so it'll go completely unrecoverable."],
+        ["Diedrick", "Same deal with the autodoc. Not to mention completely lacking base fabrication supplies for mostm medicines."],
+        ["You", "Right, so everything's fucked?"],
+        ["Joe", "Thereabouts."],
+        ["Carle", "We've got food!"],
+        ["You", "It's a start, I guess. Any clue for what to get out in the wild wastes?"],
+        ["Fredrick", "We still haven't performed the scan..."],
+        ["You", "Thanks. Anyone else want to chime in with other helpful tidbits?"],
+        ["Diedrick", "Perhaps a little less venom?"],
+        ["Jule", "...Oil, if you can find it."],
+        ["You", "Thank you."],
+        ["Joe", "We're going to need simple alloys for engine repairs. Iron and coal would do, but aluminium would help."],
+        [null, "..."],
+        ["You", "If that's it, I'll be heading out now."],
+        ["Liv", "Good luck!"],
+        ["Diedrick", "Don't die."],
+        ["Joe", "Keep the streak up."],
+        ["You", "See you in a bit."]
+      ],
+      "scene": [[[null, 0], "Pass"]]
     },
     { 
       "id": "Day2Evening",

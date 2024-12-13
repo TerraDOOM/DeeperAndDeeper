@@ -8,6 +8,7 @@
             [[["CarleStoppedSmoking", 1]], "DiedrickFinished"], 
             [[["TalkedAboutSmokingWithDiedrick", 1]], "DiedrickSmokingAdviceAlone"], 
             [[["AutoDocResupplied", 1]], "DiedrickSmokingAdvice"], 
+            [[["SodiumCollected", 1], ["CalciumCollected", 1], ["DiedrickThanked", 1]], "DiedrickResupplyAutodoc"],
             [[["DiedrickThanked", 1]], "DiedrickSecondQuest"], 
             [[["AutoDocFixed", 1]], "DiedrickAutoDocThanks"], 
             [[["Evening", 1]], "DiedrickAutodocScene"],
@@ -60,6 +61,19 @@
             ["You", "No, I got it. I'll let you get back to your helping self."],
             ["Diedrick", "What comes around goes around, captain!"]
         ]
+    },
+    {
+        "id": "DiedrickResupplyAutodoc",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "I've gotten the base materials."],
+            ["Diedrick", "Oh how wonderous! Just what was necessary. Carle will be thanking you, or if he doesn't-"],
+            ["You", "He won't"],
+            ["Diedrick", "Well I will, at least. Many thanks."],
+            ["You", "No worries."]
+        ],
+        "outcome": [["AutodocResupplied", 1]]
     },
     {
         "id": "DiedrickFirstQuest",

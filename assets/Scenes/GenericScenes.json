@@ -348,20 +348,19 @@
       "id": "NickOfTime",
       "text": [
         [null, "You arrive to the communal living room to find that everybody's already up. How come you're always last to find things out?"],
-        ["Joe", "...the building materials, the medicinal supplies, the fuel, and most importantly, the disinfectant."],
+        ["Joe", "...the building materials, the medicinal supplies, and the fuel."],
         ["You", "What did I miss?"],
         ["Jule", "Secondary cargo hold had a leak, so that strange pollen has now gotten all over everything."],
         ["Carle", "But the greenhouse survived! Food's not an issue."],
         ["Joe", "Thank god someone didn't \"just get the tuna\""],
         ["You", "More on-topic, please."],
-        ["Joe", "Air filters last at best a week until we fix the disinfector."],
         ["Jule", "Fuel is completely ruined, so we need to extract new oil from the planet."],
         ["Diedrick", "Since Liv seems to not be mentioning it..."],
         ["Liv", "All our lives are in danger, not just mine."],
         ["Diedrick", "Inhaler supply is dangerously low. A day or two away from asphyxiation being a real danger."],
         ["Liv", "Right, but we do need to get off this planet, and I don't want to jeopardize that."],
         ["Joe", "Speaking of, the engine is deteriorating rapidly. If we leave it for a week or so it'll go completely unrecoverable."],
-        ["Diedrick", "Same deal with the autodoc. Not to mention completely lacking base fabrication supplies for mostm medicines."],
+        ["Diedrick", "Same deal with the autodoc. Not to mention completely lacking base fabrication supplies for most medicines."],
         ["You", "Right, so everything's fucked?"],
         ["Joe", "Thereabouts."],
         ["Carle", "We've got food!"],
@@ -378,8 +377,119 @@
         ["Diedrick", "Don't die."],
         ["Joe", "Keep the streak up."],
         ["You", "See you in a bit."]
-      ],
-      "scene": [[[null, 0], "Pass"]]
+      ]
+    },
+    { 
+      "id": "WastedPotential",
+      "text": [
+        [null, "You arrive to the communal living room to find that everybody's already up. How come you're always last to find things out?"],
+        ["Joe", "...the building materials, the medicinal supplies, the food, and the fuel."],
+        ["You", "What did I miss?"],
+        ["Jule", "Secondary cargo hold had a leak, so that strange pollen has now gotten all over everything."],
+        ["Carle", "We already have the greenhouse, so really the food is halfway to fixing itself."],
+        ["Joe", "The greenhouse wouldn't be ruined even if we didn't pick it up."],
+        ["You", "More on-topic, please."]
+    ],
+    "scene": [
+        [["FiltrationFixed", 1], "Day1TiradeMinusLiv"],
+        [["AutoDocFixed", 1], "Day1TiradeMinusDiedrick"],
+        [["PerformedScan", 1], "Day1TiradeMinusFredrick"]
+    ]
+    },
+    { 
+      "id": "LostFood",
+      "text": [
+        [null, "You arrive to the communal living room to find that everybody's already up. How come you're always last to find things out?"],
+        ["Joe", "...the building materials, the medicinal supplies, the food, and the fuel."],
+        ["You", "What did I miss?"],
+        ["Jule", "Secondary cargo hold had a leak, so that strange pollen has now gotten all over everything."],
+        ["Joe", "If only we didn't spend the first day on getting tuna for the cat, of all things."],
+        ["You", "More on-topic, please."]
+    ],
+    "scene": [
+        [["FiltrationFixed", 1], "Day1TiradeMinusLiv"],
+        [["AutoDocFixed", 1], "Day1TiradeMinusDiedrick"],
+        [["PerformedScan", 1], "Day1TiradeMinusFredrick"]
+    ]
+    },
+    { 
+      "id": "Day2TiradeMinusLiv",
+      "text": [
+        ["Jule", "Fuel is completely ruined, so we need to extract new oil from the planet."],
+        ["Carle", "We have food!"],
+        ["Jule", "Right, five days worth, and only with strict rationing."],
+        ["Joe", "Speaking of fuel, the engine is deteriorating rapidly. If we leave it for a week or so it'll go completely unrecoverable."],
+        ["Diedrick", "Same deal with the autodoc. Not to mention completely lacking base fabrication supplies for most medicines."],
+        ["You", "Right, so everything's fucked?"],
+        ["Joe", "Thereabouts."],
+        ["You", "It's a start, I guess. Any clue for what to get out in the wild wastes?"],
+        ["Fredrick", "We still haven't performed the scan..."],
+        ["You", "Thanks. Anyone else want to chime in with other helpful tidbits?"],
+        ["Diedrick", "Perhaps a little less venom?"],
+        ["Jule", "...Oil, if you can find it."],
+        ["You", "Thank you."],
+        ["Joe", "We're going to need simple alloys for engine repairs. Iron and coal would do, but aluminium would help."],
+        [null, "..."],
+        ["You", "If that's it, I'll be heading out now."],
+        ["Liv", "Good luck!"],
+        ["Diedrick", "Don't die."],
+        ["Joe", "Keep the streak up."],
+        ["You", "See you in a bit."]
+    ]
+    },
+    { 
+      "id": "Day2TiradeMinusDiedrick",
+      "text": [
+        ["Jule", "Fuel is completely ruined, so we need to extract new oil from the planet."],
+        ["Carle", "We have food!"],
+        ["Jule", "Right, five days worth, and only with strict rationing."],
+        ["Diedrick", "Since Liv seems to not be mentioning it..."],
+        ["Liv", "All our lives are in danger, not just mine."],
+        ["Diedrick", "Inhaler supply is dangerously low. A day or two away from asphyxiation being a real danger."],
+        ["Liv", "Right, but we do need to get off this planet, and I don't want to jeopardize that."],
+        ["Joe", "Speaking of, the engine is deteriorating rapidly. If we leave it for a week or so it'll go completely unrecoverable."],
+        ["You", "Right, so everything's fucked?"],
+        ["Joe", "Thereabouts."],
+        ["You", "It's a start, I guess. Any clue for what to get out in the wild wastes?"],
+        ["Fredrick", "We still haven't performed the scan..."],
+        ["You", "Thanks. Anyone else want to chime in with other helpful tidbits?"],
+        ["Diedrick", "Perhaps a little less venom?"],
+        ["Jule", "...Oil, if you can find it."],
+        ["You", "Thank you."],
+        ["Joe", "We're going to need simple alloys for engine repairs. Iron and coal would do, but aluminium would help."],
+        [null, "..."],
+        ["You", "If that's it, I'll be heading out now."],
+        ["Liv", "Good luck!"],
+        ["Diedrick", "Don't die."],
+        ["Joe", "Keep the streak up."],
+        ["You", "See you in a bit."]
+      ]
+    },
+    { 
+      "id": "Day2TiradeMinusFredrick",
+      "text": [
+        ["Jule", "Fuel is completely ruined, so we need to extract new oil from the planet."],
+        ["Carle", "We have food!"],
+        ["Jule", "Right, five days worth, and only with strict rationing."],
+        ["Diedrick", "Since Liv seems to not be mentioning it..."],
+        ["Liv", "All our lives are in danger, not just mine."],
+        ["Diedrick", "Inhaler supply is dangerously low. A day or two away from asphyxiation being a real danger."],
+        ["Liv", "Right, but we do need to get off this planet, and I don't want to jeopardize that."],
+        ["Joe", "Speaking of, the engine is deteriorating rapidly. If we leave it for a week or so it'll go completely unrecoverable."],
+        ["Diedrick", "Same deal with the autodoc. Not to mention completely lacking base fabrication supplies for most medicines."],
+        ["You", "Right, so everything's fucked?"],
+        ["Joe", "Thereabouts."],
+        ["You", "It's a start, I guess. Any clue for what to get out in the wild wastes?"],
+        ["Jule", "...Oil, if you can find it."],
+        ["You", "Thank you."],
+        ["Joe", "We're going to need simple alloys for engine repairs. Iron and coal would do, but aluminium would help."],
+        [null, "..."],
+        ["You", "If that's it, I'll be heading out now."],
+        ["Liv", "Good luck!"],
+        ["Diedrick", "Don't die."],
+        ["Joe", "Keep the streak up."],
+        ["You", "See you in a bit."]
+      ]
     },
     { 
       "id": "Day2Evening",

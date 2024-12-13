@@ -1,7 +1,21 @@
 [
     { 
       "id": "LivInit",
-      "text": []
-      
+      "text": [],
+      "scenes": [
+        [[["LivDead", 1]], "FemaleDead"],
+        [[[null, 0]], "LivRebuff"]
+      ]
+    },
+    { 
+      "id": "LivRebuff",
+      "text": [
+        ["Liv", "Hello Captain!"],
+        ["You", "Hello! Need anything?"],
+        ["Liv", "I'm fine. Talk to the others, they've got-"],
+        [null, "She coughs a handful of times."], 
+        ["Liv", "They've got more pressing matters to attend to."],
+        ["You", "Right..."]
+      ]
     }
 ]

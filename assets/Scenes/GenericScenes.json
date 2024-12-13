@@ -1,6 +1,17 @@
 [
-    { 
+    {
       "id": "Day1Morning",
+      "black": true,
+      "text": [
+        [null, "Dim recollections of fire flicker through your head."],
+        [null, "They're relying on you, you know."],
+        [null, "Not much time left now."],
+        [null, "Time to do your job."]
+      ],
+      "scene": [[[[null, 0]], "Day1MorningTalk"]]
+    },
+    { 
+      "id": "Day1MorningTalk",
       "text": [["Liv","..ey. Hey. Hey!"], 
         ["Liv", "You awake?"], 
         ["You", "You nod blearily."], 
@@ -337,6 +348,7 @@
     },
     { 
       "id": "Day2Morning",
+      "black": true,
       "text": [
         [null, "You sleep soundly through the comfort of the night..."],
         [null, "Or do you?"],

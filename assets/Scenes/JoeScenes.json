@@ -1,9 +1,95 @@
 [
     { 
       "id": "JoeInit",
-      "text": [
-        ["Joe", "We should definitely eat the cat."],
-        ["You", "No bro."]
+      "text": [],
+      "scenes": [
+        [[["FiltrationFixed", -1], ["Evening", 1]], "JoeFixAir"],
+        [[["Day", 2], ["GreenhouseFixed", -1], ["TalkedAboutCat", -1]], "JoeCatEater"],
+        [[[null, 0]], "JoeRebuff"]
       ]
+    },
+    { 
+      "id": "JoeFixAir",
+      "text": [
+        ["Joe", "Finally decided to fix the air system, did you?"],
+        ["You", "Good day to you too, Joe."],
+        ["Joe", "It's a crisis. Skip the pleasantries."],
+        ["You", "Fair enough."]
+      ],
+      "choice": [
+        ["Get to work on the air system.", "Day1AirFixed"],
+        ["Maybe later.", "JoeReject"]
+      ]
+    },
+    { 
+      "id": "JoeReject",
+      "text": [
+        ["Joe", "Then go do something useful. Just know it needs to be done. Soon."],
+        ["You", "Uh huh."]
+      ]
+    },
+    { 
+      "id": "JoeRebuff",
+      "text": [
+        ["Joe", "If you want to chit chat, captain, go talk to someone else."]
+      ]
+    },
+    { 
+      "id": "JoeCatEater",
+      "text": [
+        [null, "You walk into Joe's quarters to see him arguing with Diedrick and Jule, loudly."],
+        ["Diedrick", "This is a comically evil proposal, even for you."],
+        ["Jule", "Also, it's disgusting."],
+        ["Joe", "Diedrick, you're just saying that because Fredrick loves him. Jule, it's a crisis."],
+        ["Jule", "It's cat food."],
+        ["You", "What's happening?"],
+        ["Joe", "I'm suggesting we get rid of Mittens."],
+        ["You", "...and eat the cat food?"],
+        ["Joe", "Exactly."],
+        [null, "Diedrick shakes his head."],
+        ["Jule", "It's not even that much food, is it?"],
+        ["Joe", "Yeah, Diedrick?"],
+        [null, "Diedrick sighs tiredly."],
+        ["Diedrick", "Liv has special dietary needs. Her food got wiped out by the cargo leak, but..."],
+        ["You", "The cat food, of all the things it could be, fulfills her needs?"],
+        ["Diedrick", "Yeah."],
+        ["Jule", "Lucky us..."],
+        ["Joe", "It is. Just kill the cat."],
+        ["You", "Really?"],
+        ["Joe", "Really."],
+        ["Jule", "Captain, we could grow the necessary food. In the greenhouse."],
+        ["Joe", "But..."],
+        [null, "Diedrick looks at you pleadingly."]
+      ],
+      "choice": [
+        ["The cat goes.", "CatEating"],
+        ["The cat stays.", "CatUneated"]
+      ]
+    },
+    { 
+      "id": "CatEating",
+      "text": [
+        ["Joe", "I knew you'd see reason."],
+        ["Diedrick", "I can't watch this."],
+        ["Joe", "Grow up."],
+        ["Jule", "I think I'm leaving too, honestly."],
+        ["You", "Yeah."],
+        ["Joe", "Leave it to the adult to handle things..."],
+        [null, "You let his jab go unanswered."]
+      ],
+      "outcome": [["CatEaten", 1], ["TalkedAboutCat", 1]]
+    },
+    { 
+      "id": "CatUneaten",
+      "text": [
+        ["Joe", "I knew you'd see reason."],
+        ["Diedrick", "I can't watch this."],
+        ["Joe", "Grow up."],
+        ["Jule", "I think I'm leaving too, honestly."],
+        ["You", "Yeah."],
+        ["Joe", "Leave it to the adult to handle things..."],
+        [null, "You let his jab go unanswered."]
+      ],
+      "outcome": [["TalkedAboutCat", 1]]
     }
 ]

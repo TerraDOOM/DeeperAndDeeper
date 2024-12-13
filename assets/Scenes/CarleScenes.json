@@ -62,7 +62,8 @@
         ["Carle", "You just gonna let him... do that?"],
         ["You", "..."],
         ["You", "Joe's right Carle. Get your shit together."]
-      ]
+      ],
+      "outcome": [["CarleStoppedSmoking", 1], ["Day", 1], ["Evening", -1]]
     },
     { 
       "id": "CarleRetort",
@@ -109,7 +110,7 @@
         ["Carle", "...You can head off to bed, Captain, I'll take care of seeding and whatnot, at least."],
         ["You", "...Right then."]
       ],
-      "outcome": [["GreenhouseFixed", 1]]
+      "outcome": [["GreenhouseFixed", 1], ["Day", 1], ["Evening", -1]]
     },
     { 
       "id": "CarleFinalGreenhouse1",
@@ -127,7 +128,7 @@
         ["Carle", "I suppose so. Well, see ya."],
         ["You", "'See ya' indeed."]
       ],
-      "outcome": [["GreenhouseFixed", 1]]
+      "outcome": [["GreenhouseFixed", 1], ["Day", 1], ["Evening", -1]]
     },
     { 
       "id": "CarleFirstQuest",

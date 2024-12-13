@@ -720,8 +720,10 @@ fn talking_action(
                                 }
                                 for scene in context.scenes.clone() {
                                     if scene.id == branch.1 {
-                                        dbg!(context.selected_scene = scene);
+                                        context.selected_scene = scene;
                                         (textbox).0 = 0;
+                                        let dialogue = context.selected_scene.text[0].1.clone();
+                                        *text = Text2d::new(dialogue);
                                         break 'outer;
                                     };
                                 }
@@ -737,8 +739,10 @@ fn talking_action(
                                 }
                                 for scene in context.scenes.clone() {
                                     if scene.id == branch.1 {
-                                        dbg!(context.selected_scene = scene);
+                                        context.selected_scene = scene;
                                         (textbox).0 = 0;
+                                        let dialogue = context.selected_scene.text[0].1.clone();
+                                        *text = Text2d::new(dialogue);
                                         break 'outer;
                                     };
                                 }
@@ -753,7 +757,8 @@ fn talking_action(
                                 if scene.id == branch.1 {
                                     dbg!(context.selected_scene = scene);
                                     (textbox).0 = 0;
-                                    //start_talking(commands, context, &query, asset_server, windows); TODO
+                                    let dialogue = context.selected_scene.text[0].1.clone();
+                                    *text = Text2d::new(dialogue);
                                     break 'outer;
                                 };
                             }

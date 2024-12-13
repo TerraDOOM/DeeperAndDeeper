@@ -18,18 +18,24 @@ enum GameState {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .init_state::<GameState>()
         .add_systems(Startup, setup)
         .add_plugins((
             menu::menu_plugin,
             game::game_plugin,
             dating_sim::dating_sim_plugin,
         ))
+        .init_state::<GameState>()
         .run();
 }
 
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
+fn setup(
+    mut commands: Commands,
+    mut menu_state: ResMut<NextState<GameState>>,
+    mut dating_state: ResMut<NextState<dating_sim::DatingState>>,
+) {
+    commands.spawn(Camera2d).insert(Transform::default());
+    menu_state.set(GameState::DatingSim);
+    dating_state.set(dating_sim::DatingState::Chilling)
 }
 
 fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {

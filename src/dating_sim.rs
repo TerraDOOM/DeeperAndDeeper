@@ -52,7 +52,7 @@ struct DatingContext {
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-enum DatingState {
+pub enum DatingState {
     #[default]
     Noting,
     Chilling,
@@ -204,7 +204,8 @@ pub fn dating_sim_plugin(app: &mut App) {
 fn on_dating_sim(
     mut commands: Commands,
     mut tmp: ResMut<NextState<DatingState>>,
-    context: ResMut<DatingContext>,
+    mut did_init: Local<bool>,
+    mut context: ResMut<DatingContext>,
     asset_server: Res<AssetServer>,
     camera: Single<
         Entity,
@@ -228,8 +229,18 @@ fn on_dating_sim(
         AudioPlayer::new(asset_server.load("Music/Music_InShip.ogg")),
         DatingObj,
     ));
-
-    tmp.set(DatingState::Chilling);
+    if !*did_init {
+        context.selected_scene = context
+            .scenes
+            .iter()
+            .find(|s: &&DatingScene| s.id == "Day1Morning")
+            .cloned()
+            .unwrap();
+        *did_init = true;
+        tmp.set(DatingState::Talking);
+    } else {
+        tmp.set(DatingState::Chilling);
+    }
 }
 
 #[derive(Component)]

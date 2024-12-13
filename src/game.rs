@@ -127,7 +127,7 @@ impl ExplorationMap {
     fn get_sprite(&self, tile: Tile) -> Sprite {
         match tile {
             Tile::Rock => self.sprites.rock.clone(),
-            Tile::Error => self.sprites.error.clone(),
+            Tile::Error => self.sprites.nothing.clone(),
             Tile::Wall => self.sprites.backdrop.clone(),
             _ => self.sprites.nothing.clone(),
         }
@@ -341,7 +341,7 @@ fn spawn_player(
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
     let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 5, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let mut animation_config_1 = AnimationConfig::new(0, 1, 8, 10);
+    let mut animation_config_1 = AnimationConfig::new(0, 1, 16, 10);
     animation_config_1.running = true;
 
     let enc = commands.spawn((

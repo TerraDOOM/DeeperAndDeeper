@@ -275,13 +275,13 @@
         ["You", "And you as well."]
       ],
       "outcome": [["GreenhouseFixed", 1]],
-      "scene": [[null, 0], "Pass"]
+        "scene": [[[null, 0], "Pass"]]
     },
     { 
       "id": "Day1Scan",
       "text": [[null, "This should tell you where the important objectives are."]],
       "outcome": [["PerformedScan", 1]],
-      "scene": [[null, 0], "Pass"]
+      "scene": [[[null, 0], "Pass"]]
     },
     { 
       "id": "Day1AirFixed",
@@ -313,7 +313,7 @@
         ["You", "Right."]
       ],
       "outcome": [["FiltrationFixed", 1]],
-      "scene": [[null, 0], "Pass"]
+      "scene": [[[null, 0], "Pass"]]
     },
     { 
       "id": "Day1AutoDoc",
@@ -333,7 +333,7 @@
         ["You", "...Touché."]
       ],
       "outcome": [["AutoDocFixed", 1]],
-      "scene": [[null, 0], "Pass"]
+        "scene": [[[null, 0], "Pass"]]
     },
     { 
       "id": "Day2Morning",

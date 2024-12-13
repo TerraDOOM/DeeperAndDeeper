@@ -3,7 +3,136 @@
       "id": "JuleInit",
       "text": [],
       "scenes": [
-        
+        [[["JuleDead", 1]], "FemaleDead"],
+        [[["EnginesFixed", 1]], "JuleFinished"],
+        [[["EnginesRepaired", 1], ["OilCollected", 1], ["SulfurCollected", 1], ["Evening", 1]], "JuleFixFuel"],
+        [[["EnginesRepaired", 1]], "JuleSecondQuest"],
+        [[["IronCollected", 1], ["CoalCollected", 1], ["Evening", 1]], "JuleFixEngines"],
+        [[["IronCollected", 1], ["CoalCollected", 1]], "JuleMorningFinishedQuest"],
+        [[[null, 0]], "JuleFirstQuest"]
+      ]
+    },
+    { 
+      "id": "JuleFirstQuest",
+      "text": [
+        [null, "You walk into Jule's quarters, where she's currently talking to Joe."],
+        ["Jule", "Ah, captain. Right on time."],
+        ["Joe", "We were talking about fixing the engines."],
+        ["Jule", "We need materials to reinforce the framework, it turns out."],
+        ["Joe", "Someone didn't land very cleanly..."],
+        ["You", "I'm sure it's not particularly easy with failing engines."],
+        ["Joe", "Could've been avoided."],
+        ["You", "What are these materials, anyway?"],
+        ["Jule", "We need iron and coal to synthesize the necessary steel alloy. Any iron and coal ore should do."],
+        ["You", "Well, I'll see what I can scrounge up."],
+        ["Jule", "Many thanks, captain. Best of luck."]
+      ]
+    },
+    { 
+      "id": "JuleMorningFinishedQuest",
+      "text": [
+        [null, "You walk into Jule's quarters. She seems to be fiddling with some kind of intricate puzzle."],
+        ["Jule", "...damn, steel, just, go through! Gah!"],
+        ["You", "Jule?"],
+        ["Jule", "Ah! Captain, I didn't see you there."],
+        [null, "She sounds somewhat embarrassed."],
+        ["You", "Puzzle giving you a tough time?"],
+        ["Jule", "Indeed... keeps the mind sharp. Want to give it a try?"],
+        [null, "You look at the puzzle. It resembles a thick steel knot."],
+        ["You", "No thanks."],
+        ["Jule", "I saw you got the materials for the steel."],
+        ["You", "I did! That all we need?"],
+        ["Jule", "Still need fuel, but that can wait. Return in the evening and we'll get to work on it."],
+        ["You", "Right."]
+      ]
+    },
+    { 
+      "id": "JuleFixEngines",
+      "text": [
+        [null, "You walk into Jule's quarters. She's reading a book, seemingly a technical manual."],
+        ["You", "What're you reading?"],
+        [null, "She looks up, somewhat surprised to see you."],
+        ["Jule", "Manual for a Type-9 transport. They've got a novel transmission system for the auxiliary thrusters."],
+        ["You", "We're years away before we get an upgrade, Jule."],
+        ["Jule", "Pays to be prepared captain. Anyway,"],
+        [null, "She puts away the book."],
+        ["Jule", "Ready to get to work? I'll call over Joe."]
+      ],
+      "choice": [
+        ["Go ahead", "JuleFixEngines2"],
+        ["Wait a little", "JuleReject"]
+      ]
+    },
+    { 
+      "id": "JuleFixEngines2",
+      "black": true,
+      "text": [
+        [null, "..."],
+        [null, "Even with Joe's help, fixing the engines is backbreaking work."],
+        [null, "It doesn't help that Joe's getting on in his years."],
+        [null, "But you do eventually finish."]
+      ],
+      "scenes": [[[null, 0]], "JuleFixEngines3"]
+    },
+    { 
+      "id": "JuleFixEngines3",
+      "text": [
+        ["You", "Holy hell."],
+        ["Joe", "Jesus, my back."],
+        ["Jule", "Yeah, we prefer orbital drydocks for a reason."],
+        ["You", "Nonetheless, it's finished."],
+        ["Jule", "My thanks Captain, and Joe."]
+      ],
+      "outcome": [["EnginesRepaired", 1], ["Day", 1], ["Evening", -1]]
+    },
+    {
+    "id": "JuleReject",
+    "text": [
+        ["Jule", "Well, don't take too long. We don't have forever."]
+      ]
+    },
+    {
+    "id": "JuleSecondQuest",
+    "text": [
+        ["Jule", "Ah, Captain! If I could have a moment?"],
+        ["You", "By all means."],
+        ["Jule", "The engines need fuel."],
+        ["You", "I got that earlier. Which means..."],
+        ["Jule", "We're running a very utilitarian system here, Captain. Any old oil will do, along with some sulfur."],
+        ["You", "Right. Oil. Sulfur. Gotcha."],
+        ["Jule", "Best of luck, Captain."]
+      ]
+    },
+    {
+    "id": "JuleFixFuel",
+    "text": [
+        [null, "You step into Jule's quarters, where she tiredly looks up at you."],
+        ["Jule", "Things have been getting a little stressful, haven't they, Captain?"],
+        ["You", "I got the fuel resources."],
+        ["Jule", "That you did. Good job."],
+        ["You", "Just doing my job."],
+        ["Jule", "As expected. Ready to synthesize some fuel?"]
+      ],
+    "choice": [
+        ["All ready.", "JuleFixFuel2"],
+        ["Maybe later", "JuleReject"]
+      ]
+    },
+    {
+    "id": "JuleFixFuel2",
+    "text": [
+        ["Jule", "Well, great, because there's one annoying part to this."],
+        ["You", "Oh?"],
+        ["Jule", "The crash damaged our industrial mixer. We need to stir by hand."],
+        ["You", "Isn't this supposed to be thick as tar?"],
+        ["Jule", "Get to work!"],
+        ["You", "..."],
+        [null, "You spend the next several hours fixing the fuel mixture, before collapsing in your bed tiredly."]
+      ],
+    "outcome": [
+        ["EnginesFixed", 1],
+        ["Day", 1],
+        ["Evening", -1]
       ]
     }
 ]

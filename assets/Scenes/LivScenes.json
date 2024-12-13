@@ -1,9 +1,7 @@
 [
     { 
       "id": "LivInit",
-      "text": [
-        ["Liv", "We should definitely not let people die."],
-        ["You", "No bro."]
-      ]
+      "text": []
+      
     }
 ]

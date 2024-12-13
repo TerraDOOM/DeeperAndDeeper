@@ -166,7 +166,7 @@
         ["Jule", "Jesus, Joe."],
         ["You", "Anyway."]
       ],
-      "choices": [["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
+      "choice": [["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
     },
     { 
       "id": "TunaSecondTry",
@@ -216,7 +216,7 @@
         ["Jule", "Jesus, Joe."],
         ["You", "Anyway."]
       ],
-      "choices": [["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
+      "choice": [["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
     },
     { 
       "id": "AboveAndBeyond",
@@ -265,7 +265,7 @@
         ["You", "Anyway."]
       ],
       "outcome": [["EarlyGreenhouse", 1]],
-      "choices": [["Fix the greenhouse!", "GreenhouseDay1"], ["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
+      "choice": [["Fix the greenhouse!", "GreenhouseDay1"], ["Let's scan the caves.", "Day1Scan"], ["Let's fix the air systems", "Day1AirFixed"], ["Let's fix the autodoc.", "Day1AutoDoc"]]
     },
     { 
       "id": "GreenhouseDay1",
@@ -428,7 +428,7 @@
         ["Joe", "...the building materials, the medicinal supplies, the food, and the fuel."],
         ["You", "What did I miss?"],
         ["Jule", "Secondary cargo hold had a leak, so that strange pollen has now gotten all over everything."],
-        ["Joe", "If only we didn't spend the first day on getting tuna for the cat, of all things."],
+        ["Joe", "If only we didn't spend the first day on getting tuna for the cat, of all things..."],
         ["You", "More on-topic, please."]
     ],
     "scene": [
@@ -518,15 +518,16 @@
     },
     { 
       "id": "Day2Evening",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Another evening."]]
     },
     { 
       "id": "Day3Morning",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Liv dies of poor air filtration"]],
+      "outcome": [["LivDead", 1]]
     },
     { 
       "id": "Day3Evening",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Another evening."]]
     },
     { 
       "id": "Day4Morning",
@@ -534,7 +535,7 @@
     },
     { 
       "id": "Day4Evening",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Another evening."]]
     },
     { 
       "id": "Day5Morning",
@@ -542,7 +543,7 @@
     },
     { 
       "id": "Day5Evening",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Another evening."]]
     },
     { 
       "id": "Day6Morning",
@@ -550,7 +551,7 @@
     },
     { 
       "id": "Day6Evening",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Another evening."]]
     },
     { 
       "id": "Day7Morning",
@@ -558,6 +559,14 @@
     },
     { 
       "id": "Day7Evening",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [[null, "Another evening."]]
+    },
+    { 
+      "id": "FemaleDead",
+      "text": [[null, "You can't bring her back."]]
+    },
+    { 
+      "id": "MaleDead",
+      "text": [[null, "You can't bring him back."]]
     }
 ]

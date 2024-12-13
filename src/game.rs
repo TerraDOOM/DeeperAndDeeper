@@ -441,7 +441,38 @@ fn spawn_player(
             ..default()
         });
         //sodium: Sprite TODO
+
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(47400.0, -20900.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            trigger: TriggerComponent {
+                id: TriggerType::ItemPickup,
+                delete_on_trigger: true,
+                flags: Some("SodiumCollected".to_string()),
+            },
+            ..default()
+        });
+
         //calcium: Sprite TODO
+
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(42100.0, -13100.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            trigger: TriggerComponent {
+                id: TriggerType::ItemPickup,
+                delete_on_trigger: true,
+                flags: Some("CalciumCollected".to_string()),
+            },
+            ..default()
+        });
         //sulfur
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(23100.0, -20100.0, 0.0),

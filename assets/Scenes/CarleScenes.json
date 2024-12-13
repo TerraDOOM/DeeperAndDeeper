@@ -3,6 +3,7 @@
       "id": "CarleInit",
       "text": [],
       "scene": [
+        [[["CarleDead", 1]], "MaleDead"],
         [[["TalkedAboutSmokingWithDiedrick", 1], ["GreenhouseFixed", 1], ["Evening", 1]], "CarleSmokingTalk"],
         [[["IceCollected", 1], ["PotassiumCollected", 1], ["GreenhouseBuilt", 1], ["Evening", 1]], "CarleFixDirt"],
         [[["GreenhouseBuilt", 1]], "CarleSecondQuest"],

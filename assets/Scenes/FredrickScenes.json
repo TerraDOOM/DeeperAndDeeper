@@ -1,6 +1,14 @@
 [
     { 
       "id": "FredrickInit",
+      "text": [],
+      "scenes": [
+        [[["FrederickDead", 1]], "MaleDead"],
+        [[[null, 0]], "FredrickDefault"]
+      ]
+    },
+    { 
+      "id": "FredrickDefault",
       "text": [
         ["Fredrick", "We should definitely go scanning."],
         ["You", "No bro."]

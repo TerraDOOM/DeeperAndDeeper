@@ -522,7 +522,19 @@
     },
     { 
       "id": "Day3Morning",
-      "text": [[null, "Liv dies of poor air filtration"]],
+      "text": [],
+      "scenes": [
+        [[["FiltrationFixed", 1]], "Day3NormalMorning"],
+        [[[null, 0]], "Day3LivDead"]
+      ]
+    },
+    { 
+      "id": "Day3NormalMorning",
+      "text": [[null, "Another morning."]]
+    },
+    { 
+      "id": "Day3LivDead",
+      "text": [[null, "Liv died :(."]],
       "outcome": [["LivDead", 1]]
     },
     { 
@@ -531,7 +543,20 @@
     },
     { 
       "id": "Day4Morning",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [],
+      "scenes": [
+        [[["FiltrationFixed", 1]], "Day4NormalMorning"],
+        [[[null, 0]], "Day4FrederickDead"]
+      ]
+    },
+    { 
+      "id": "Day4NormalMorning",
+      "text": [[null, "Another morning."]]
+    },
+    { 
+      "id": "Day4FrederickDead",
+      "text": [[null, "Frederick died :(."]],
+      "outcome": [["FrederickDead", 1]]
     },
     { 
       "id": "Day4Evening",
@@ -539,7 +564,38 @@
     },
     { 
       "id": "Day5Morning",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [],
+      "scenes": [
+        [[["FiltrationFixed", 1]], "Day5FilterDeaths"],
+        [[[null, 0]], "Day5FoodCheck"]
+      ]
+    },
+    { 
+      "id": "Day5FilterDeaths",
+      "text": [[null, "Jule died :(."]],
+      "outcome": [["JuleDead", 1]],
+      "scenes": [
+        [[[null, 0]], "Day5FoodCheck"]
+      ]
+    },
+    { 
+      "id": "Day5FoodCheck",
+      "text": [],
+      "scenes": [
+        [[["GreenhouseFixed", 1]], "Day5NormalMorning"],
+        [[["CatEaten", 1]], "Day5NormalMorning"],
+        [[["LivDead", 1]], "Day5NormalMorning"],
+        [[[null, 0]], "Day5Starvation"]
+      ]
+    },
+    { 
+      "id": "Day5NormalMorning",
+      "text": [[null, "Another morning."]]
+    },
+    { 
+      "id": "Day5Starvation",
+      "text": [[null, "Liv died :(."]],
+      "outcome": [["LivDead", 1]]
     },
     { 
       "id": "Day5Evening",
@@ -547,7 +603,20 @@
     },
     { 
       "id": "Day6Morning",
-      "text": [[null, "Le epic placeholder"]]
+      "text": [],
+      "scenes": [
+        [[["AutoDocResupplied", 1]], "Day6NormalMorning"],
+        [[[null, 0]], "Day6AutodocDeath"]
+      ]
+    },
+    { 
+      "id": "Day6NormalMorning",
+      "text": [[null, "Another morning."]]
+    },
+    { 
+      "id": "Day6AutodocDeath",
+      "text": [[null, "Carle died :(."]],
+      "outcome": [["CarleDead", 1]]
     },
     { 
       "id": "Day6Evening",
@@ -555,11 +624,7 @@
     },
     { 
       "id": "Day7Morning",
-      "text": [[null, "Le epic placeholder"]]
-    },
-    { 
-      "id": "Day7Evening",
-      "text": [[null, "Another evening."]]
+      "text": [[null, "Game over!"]]
     },
     { 
       "id": "FemaleDead",

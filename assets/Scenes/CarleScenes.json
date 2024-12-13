@@ -1,11 +1,63 @@
 [
     { 
       "id": "CarleInit",
+      "text": [],
+      "scene": [
+        [[["GreenhouseCollected", 1], ["Evening", 1]], "GreenhouseBuildingReal"],
+        [[["GreenhouseCollected", 1]], "GreenhouseBuilding"],
+        [[[null, 0]], "CarleFirstQuest"]
+      ]
+    },
+    { 
+      "id": "CarleFirstQuest",
       "text": [
-        ["Carle", "Bro... is anything even real?"],
-        ["You", "No bro."]
+        ["You", "Carle?"],
+        ["Carle", "Always here, boss."],
+        ["You", "You know it's captain, Carle."],
+        ["Carle", "Hah, alright, cap'n. What can I do for you?"],
+        ["You", "I'm wondering if there's anything I can do for you?"],
+        ["Carle", "Well, as you know, the greenhouse decoupled from the ship early."],
+        ["You", "You want me to get it?"],
+        ["Carle", "Got it in one."],
+        ["Carle", "Likely it's somewhere on the surface. It's still in the prefab box, for the record."],
+        ["You", "I'll keep an eye out!"],
+        ["Carle", "All I'm asking for, cap'n."]
+      ]
+    },
+    { 
+      "id": "CarleBuildingReal",
+      "text": [
+        ["You", "Carle?"],
+        ["Carle", "Always here, cap'n."],
+        ["You", "And?"],
+        ["Carle", "Oh, right. Well, with the greenhouse acquired, it's just a question of setting up the prefab, really."],
+        ["You", "Easier than expected, honestly."],
+        ["Carle", "Also we need to make new viable dirt for the greenhouse, after the leak."],
+        ["You", "Things are never easy, are they..."],
+        ["Carle", "It's not that bad. A batch of potassium and some ice from underground deposits."],
+        ["You", "Just great."],
+        ["Carle", "We can get to working on the greenhouse before dirt is acquired, though."],
+        ["Carle", "If you have the time?"]
       ],
-      "scene": [[["GreenhouseFixed", 1], "Tuna"], 
-                [[null, 0], "return"]]
+      "choice": [
+        ["I suppose I do.", "CarleBuildingDowntime"],
+        ["Not right now, I think", "CarleBuilding"]
+      ]
+    },
+    { 
+      "id": "CarleBuilding",
+      "text": [
+        ["You", "Carle?"],
+        ["Carle", "Always here, cap'n."],
+        ["You", "And?"],
+        ["Carle", "Oh, right. Well, with the greenhouse acquired, it's just a question of setting up the prefab, really."],
+        ["You", "Easier than expected, honestly."],
+        ["Carle", "Also we need to make new viable dirt for the greenhouse, after the leak."],
+        ["You", "Things are never easy, are they..."],
+        ["Carle", "It's not that bad. A batch of potassium and some ice from underground deposits."],
+        ["You", "Just great."],
+        ["Carle", "We can get to working on the greenhouse before dirt is acquired, though."],
+        ["You", "Talk to me after the next excursion."]
+      ]
     }
 ]

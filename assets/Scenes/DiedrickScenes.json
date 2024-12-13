@@ -7,7 +7,7 @@
             [["FredrickDead", 1], "DiedrickRebuff"], 
             [["CarleStoppedSmoking", 1], "DiedrickFinished"], 
             [["TalkedAboutSmokingWithDiedrick", 1], "DiedrickSmokingAdviceAlone"], 
-            [["AutoDocResupplied", 1], ["Days", 3], "DiedrickSmokingAdvice"], 
+            [["AutoDocResupplied", 1], "DiedrickSmokingAdvice"], 
             [["DiedrickThanked", 1], "DiedrickSecondQuest"], 
             [["AutoDocFixed", 1], "DiedrickAutoDocThanks"], 
             [[null, 0], "DiedrickFirstQuest"]

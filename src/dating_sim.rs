@@ -215,7 +215,7 @@ fn on_chill(
     let width = window.resolution.width();
     let height = window.resolution.height();
 
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
     let text_font = TextFont {
         font: font.clone(),
         font_size: 50.0,
@@ -224,7 +224,7 @@ fn on_chill(
 
     let slightly_smaller_text_font = TextFont {
         font,
-        font_size: 35.0,
+        font_size: 27.0,
         ..default()
     };
 
@@ -255,7 +255,11 @@ fn on_chill(
     let size = width / 9.0;
 
     commands.spawn((
-        Sprite::from_color(Color::srgb(0.75, 0.2, 0.2), Vec2::new(size, size)),
+        Sprite {
+            custom_size: Some(Vec2::new(size, size)),
+            image: asset_server.load("Icons/ExitShip_Icon.png"),
+            ..Default::default()
+        },
         Transform::from_translation(Vec2::new(0.0, -height / 3.0).extend(0.0)),
         Portrait,
         DatingObj,
@@ -320,13 +324,13 @@ fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetS
         },
         CharactersType::Fredrick => Sprite {
             custom_size: Some(size),
-            image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
+            image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
             ..Default::default()
         },
 
         CharactersType::Diedrick => Sprite {
             custom_size: Some(size),
-            image: asset_server.load("Portraits/Character_Twin_Fredrick.png"),
+            image: asset_server.load("Portraits/Character_Twin_Dedrick.png"),
             ..Default::default()
         },
 
@@ -346,6 +350,11 @@ fn get_portrait(character: CharactersType, size: Vec2, asset_server: &Res<AssetS
             image: asset_server.load("Portraits/Character_cat.png"),
             ..Default::default()
         },
+        CharactersType::You => Sprite {
+            custom_size: Some(size),
+            image: asset_server.load("Portraits/Character_Player.png"),
+            ..Default::default()
+        },
         _ => Sprite::from_color(Color::srgb(0.25, 0.25, 0.75), size),
     };
 }
@@ -361,7 +370,7 @@ fn start_talking(
     let width = window.resolution.width();
     let height = window.resolution.height();
 
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
     let text_font = TextFont {
         font: font.clone(),
         font_size: 50.0,
@@ -370,73 +379,82 @@ fn start_talking(
 
     let slightly_smaller_text_font = TextFont {
         font,
-        font_size: 35.0,
+        font_size: 27.0,
         ..default()
     };
 
-    let talk_size = Vec2::new(width / 1.6, height / 5.0);
-    let talk_position = Vec2::new(width / 8.0, -height / 2.5);
+    let talk_size = Vec2::new(width / 1.3, height / 3.0);
+    let talk_position = Vec2::new(width / 8.0, -height / 2.7);
 
-    let dialogue = context.selected_scene.text[0].1.clone();
-    let person = context.selected_scene.text[0].0;
-    commands
-        .spawn((
-            Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), talk_size),
-            Transform::from_translation(talk_position.extend(1.0)),
-            TalkObj,
-        ))
-        .with_children(|builder| {
-            builder.spawn((
-                Text2d::new(dialogue),
-                TextBox(0),
-                slightly_smaller_text_font.clone(),
-                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                // Wrap text in the rectangle
-                TextBounds::from(talk_size),
-                // ensure the text is drawn on top of the box
-                Transform::from_translation(Vec3::Z),
-            ));
-        });
-
-    //Who is talking
-    if let Some(real_preson) = person {
+    if (context.selected_scene.text.len() > 0) {
+        let dialogue = context.selected_scene.text[0].1.clone();
+        let person = context.selected_scene.text[0].0;
         commands
             .spawn((
-                Sprite::from_color(
-                    Color::srgb(0.20, 0.3, 0.70),
-                    Vec2::new(width / 4.0, height / 10.0),
-                ),
-                Transform::from_translation(
-                    (talk_position
-                        + Vec2::new(-talk_size.y / 2.0, talk_size.y / 2.0 + height / 20.0))
-                    .extend(1.0),
-                ),
+                Sprite {
+                    custom_size: Some(talk_size),
+                    image: asset_server.load("Textbox/Textbox.png"),
+                    ..Default::default()
+                },
+                Transform::from_translation(talk_position.extend(1.0)),
                 TalkObj,
             ))
             .with_children(|builder| {
                 builder.spawn((
-                    Text2d::new(format!("{:?}", real_preson)),
-                    NameBox,
+                    TextColor(Color::srgb(0.0, 0.0, 0.0)),
+                    Text2d::new(dialogue),
+                    TextBox(0),
                     slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                     // Wrap text in the rectangle
-                    TextBounds::from(talk_size),
+                    TextBounds::from(talk_size * 0.75),
                     // ensure the text is drawn on top of the box
                     Transform::from_translation(Vec3::Z),
                 ));
             });
 
-        //Look at sexy person talking
-        commands.spawn((
-            get_portrait(
-                real_preson,
-                Vec2::new(width / 2.0, width / 2.0),
-                &asset_server,
-            ),
-            Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
-            TalkObj,
-            Portrait,
-        ));
+        //Who is talking
+        if let Some(real_preson) = person {
+            commands
+                .spawn((
+                    Sprite {
+                        custom_size: Some(talk_size),
+                        image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
+                        ..Default::default()
+                    },
+                    Transform::from_translation(
+                        (talk_position
+                            + Vec2::new(talk_size.x / 2.0 - width / 6.0, talk_size.y / 3.0))
+                        .extend(0.8),
+                    ),
+                    TalkObj,
+                ))
+                .with_children(|builder| {
+                    builder.spawn((
+                        Text2d::new(format!("{:?}", real_preson)),
+                        TextColor(Color::srgb(0.0, 0.0, 0.0)),
+                        NameBox,
+                        slightly_smaller_text_font.clone(),
+                        TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                        // Wrap text in the rectangle
+                        TextBounds::from(talk_size),
+                        // ensure the text is drawn on top of the box
+                        Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
+                    ));
+                });
+
+            //Look at sexy person talking
+            commands.spawn((
+                get_portrait(
+                    real_preson,
+                    Vec2::new(width / 2.0, width / 2.0),
+                    &asset_server,
+                ),
+                Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
+                TalkObj,
+                Portrait,
+            ));
+        }
     }
 }
 
@@ -451,7 +469,7 @@ fn on_choosing(
     let width = window.resolution.width();
     let height = window.resolution.height();
 
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
     let text_font = TextFont {
         font: font.clone(),
         font_size: 50.0,
@@ -460,7 +478,7 @@ fn on_choosing(
 
     let slightly_smaller_text_font = TextFont {
         font,
-        font_size: 35.0,
+        font_size: 27.0,
         ..default()
     };
 
@@ -483,9 +501,10 @@ fn on_choosing(
                 builder.spawn((
                     Text2d::new(label_1),
                     slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                    TextBounds::from(option_size),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                    TextBounds::from(option_size * 0.85),
                     Transform::from_translation(Vec3::Z),
+                    TextColor(Color::srgb(0.0, 0.0, 0.0)),
                 ));
             });
         commands
@@ -498,8 +517,8 @@ fn on_choosing(
                 builder.spawn((
                     Text2d::new(label_2),
                     slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
-                    TextBounds::from(option_size),
+                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                    TextBounds::from(option_size * 0.85),
                     Transform::from_translation(Vec3::Z),
                 ));
             });
@@ -538,12 +557,12 @@ fn choose_move(
     if confirm {
         if let Some(choices) = context.selected_scene.choice.clone() {
             if context.cursor == 0 {
-                if (choices.0 .1).to_lowercase() == "return" {
+                if (choices.0.1).to_lowercase() == "return" {
                     tmp.set(DatingState::Chilling);
                 } else {
                     for scene in context.scenes.clone() {
-                        dbg!(scene.id == choices.0 .1);
-                        if scene.id == choices.0 .1 {
+                        dbg!(scene.id == choices.0.1);
+                        if scene.id == choices.0.1 {
                             context.selected_scene = scene;
                             tmp.set(DatingState::Talking);
                             break;
@@ -551,11 +570,11 @@ fn choose_move(
                     }
                 }
             } else {
-                if (choices.1 .1).to_lowercase() == "return" {
+                if (choices.1.1).to_lowercase() == "return" {
                     tmp.set(DatingState::Chilling);
                 } else {
                     for scene in context.scenes.clone() {
-                        if scene.id == choices.1 .1 {
+                        if scene.id == choices.1.1 {
                             context.selected_scene = scene;
                             tmp.set(DatingState::Talking);
                             break;
@@ -611,7 +630,7 @@ fn talking_action(
                     commands.entity(entity).despawn_recursive();
                 }
 
-                let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+                let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
                 let text_font = TextFont {
                     font: font.clone(),
                     font_size: 50.0,
@@ -620,7 +639,7 @@ fn talking_action(
 
                 let slightly_smaller_text_font = TextFont {
                     font,
-                    font_size: 35.0,
+                    font_size: 27.0,
                     ..default()
                 };
 
@@ -628,38 +647,40 @@ fn talking_action(
                     let window = windows.single();
                     let width = window.resolution.width();
                     let height = window.resolution.height();
-                    let talk_size = Vec2::new(width / 1.6, height / 5.0);
-                    let talk_position = Vec2::new(0.0, -height / 2.5);
+                    let talk_size = Vec2::new(width / 1.3, height / 3.0);
+                    let talk_position = Vec2::new(width / 8.0, -height / 2.7);
                     commands
                         .spawn((
-                            Sprite::from_color(
-                                Color::srgb(0.20, 0.3, 0.70),
-                                Vec2::new(width / 4.0, height / 10.0),
-                            ),
+                            Sprite {
+                                custom_size: Some(talk_size),
+                                image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
+                                ..Default::default()
+                            },
                             Transform::from_translation(
                                 (talk_position
                                     + Vec2::new(
-                                        -talk_size.y / 2.0,
-                                        talk_size.y / 2.0 + height / 20.0,
+                                        talk_size.x / 2.0 - width / 6.0,
+                                        talk_size.y / 3.0,
                                     ))
-                                .extend(1.0),
+                                .extend(0.8),
                             ),
                             TalkObj,
                         ))
                         .with_children(|builder| {
                             builder.spawn((
+                                TextColor(Color::srgb(0.0, 0.0, 0.0)),
                                 Text2d::new(format!("{:?}", new_person)),
                                 NameBox,
                                 slightly_smaller_text_font.clone(),
-                                TextLayout::new(JustifyText::Left, LineBreak::AnyCharacter),
+                                TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                                 // Wrap text in the rectangle
                                 TextBounds::from(talk_size),
                                 // ensure the text is drawn on top of the box
-                                Transform::from_translation(Vec3::Z),
+                                Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
                             ));
                         });
 
-                    //Look at secy person talking
+                    //Look at sexy person talking
                     commands.spawn((
                         get_portrait(
                             new_person,
@@ -688,9 +709,26 @@ fn talking_action(
                 } else if let Some(scene) = context.selected_scene.scene.clone() {
                     'outer: for branch in scene {
                         //                            flags: HashMap<String, isize>,
-                        if let Some(flag_name) = branch.0 .0 {
+                        if let Some(flag_name) = branch.0.0 {
                             if context.flags.contains_key(&flag_name)
-                                && context.flags[&flag_name] >= branch.0 .1
+                                && context.flags[&flag_name] >= branch.0.1
+                            {
+                                //We fulfil the condition and move on
+                                if branch.1.to_lowercase() == "return" {
+                                    tmp.set(DatingState::Chilling);
+                                    break 'outer;
+                                }
+                                for scene in context.scenes.clone() {
+                                    if scene.id == branch.1 {
+                                        dbg!(context.selected_scene = scene);
+                                        (textbox).0 = 0;
+                                        break 'outer;
+                                    };
+                                }
+                            } else if (branch.0.1 < 0 && !context.flags.contains_key(&flag_name))
+                                || (branch.0.1 < 0
+                                    && context.flags.contains_key(&flag_name)
+                                    && context.flags[&flag_name] >= branch.0.1.abs())
                             {
                                 //We fulfil the condition and move on
                                 if branch.1.to_lowercase() == "return" {
@@ -747,6 +785,7 @@ fn cursor_action(
     mut query: Query<&mut Transform, With<Cursor>>,
     mut context: ResMut<DatingContext>,
     mut tmp: ResMut<NextState<DatingState>>,
+    mut tmp_super: ResMut<NextState<GameState>>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     // Consider changing font-size instead of scaling the transform. Scaling a Text2D will scale the
@@ -766,7 +805,8 @@ fn cursor_action(
 
     if confirm {
         if context.cursor == -5 {
-            todo!();
+            tmp.set(DatingState::Noting);
+            tmp_super.set(GameState::Explore);
         } else {
             let talk_key = context.all_characters[(context.cursor + 3) as usize]
                 .current_dialogue

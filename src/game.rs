@@ -227,8 +227,8 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     const BACKDROP: Vec2 = Vec2::new(96.0, 48.0);
 
     let backdrop = Sprite {
-        color: Color::srgba(0.7, 0.7, 0.7, 1.0),
-        ..make_sprite("Map/tileset_deeper_and_deeper.png", BACKDROP)
+        color: Color::srgba(0.4, 0.4, 0.4, 1.0),
+        ..make_sprite("Map/tileset_deeper_and_deeper.png", ROCK)
     };
 
     let sprites = TileSprites {
@@ -336,9 +336,9 @@ fn spawn_player(
     let background_size = Some(Vec2::new(width, height));
     let background_position = Transform::from_xyz(0.0, 0.0, -1000.0);
 
-    let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_packed.png");
+    let texture = server.load("Backgrounds/deeper_deeper_galaxy.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 4, 5, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 5, 4, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let mut animation_config_1 = AnimationConfig::new(0, 0, 16, 5);
     animation_config_1.running = true;
@@ -382,7 +382,7 @@ fn spawn_player(
             },
             RigidBody::KinematicPositionBased,
             TransformBundle::from(Transform::from_xyz(6800.0, -7500.0, 0.0)),
-            Collider::ball(sprite_size / 2.),
+            Collider::ball(sprite_size / 2.4),
             Player {
                 grounded: false,
                 speed: 10.0,

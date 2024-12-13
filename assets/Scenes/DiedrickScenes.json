@@ -31,7 +31,7 @@
             ["Diedrick", "Autodoc still needs fixing, captain. You got the time spare?"]
         ],
         "choice": [
-            ["Sure do! (passes time)", "Day1AutoDoc"],
+            ["Sure do!", "Day1AutoDoc"],
             ["No, sorry.", "AutodocReject"]
         ]
     },

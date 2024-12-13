@@ -3,10 +3,131 @@
       "id": "CarleInit",
       "text": [],
       "scene": [
+        [[["TalkedAboutSmokingWithDiedrick", 1], ["GreenhouseFixed", 1], ["Evening", 1]], "CarleSmokingTalk"],
+        [[["IceCollected", 1], ["PotassiumCollected", 1], ["GreenhouseBuilt", 1], ["Evening", 1]], "CarleFixDirt"],
+        [[["GreenhouseBuilt", 1]], "CarleSecondQuest"],
         [[["GreenhouseCollected", 1], ["Evening", 1]], "GreenhouseBuildingReal"],
         [[["GreenhouseCollected", 1]], "GreenhouseBuilding"],
         [[[null, 0]], "CarleFirstQuest"]
       ]
+    },
+    { 
+      "id": "CarleSmokingTalk",
+      "text": [
+        ["You", "Carle?"],
+        [null, "Carle lights a cigarette before looking over at you."],
+        ["Carle", "Always here, cap'n."],
+        ["You", "We need to talk about the smoking."],
+        ["Carle", "Captain, I already told you, it's medicinal."],
+        ["You", "Diedrick agrees with me."],
+        ["Carle", "Gah, it's fine!"],
+        ["You", "It really isn't, Carle."],
+        ["Carle", "Are we really having this conversation?"]
+      ],
+      "choice": [
+        ["We are. (Passes time)", "CarleConfrontation"],
+        ["...No.", "CarleRetort"]
+      ]
+    },
+    { 
+      "id": "CarleConfrontation",
+      "text": [
+        ["Carle", "Alright then. Is this an order?"],
+        ["You", "Frankly? Yes."],
+        ["Carle", "Gotcha."],
+        [null, "Carle rubs his chin a couple of times, before taking a puff from his cigarette."],
+        ["Carle", "No."],
+        ["You", "No?"],
+        ["Carle", "No. I need them. Pain relief."],
+        ["You", "Liv could die from you overloading the filters."],
+        ["Carle", "I guess she'll have to sit in a different room. Look, it'll work out."],
+        ["You", "What??"],
+        [null, "The door to Carle's quarters opens, and Joe steps in."],
+        ["Joe", "Sorry, I was eavesdropping and had to intrude."],
+        ["Carle", "Huh?"],
+        ["Joe", "I urge you to consider the following argument:"],
+        [null, "Joe takes a deep breath."],
+        [null, "And slugs Carle in the stomach."],
+        ["You", "Jesus christ!"],
+        [null, "Carle doubles over, retching."],
+        ["Joe", "ARE YOU A FUCKING IDIOT, CARLE?"],
+        ["Joe", "LIV COULD DIE!"],
+        ["Joe", "GET YOUR SHIT TOGETHER."],
+        [null, "Joe pulls Carle up to a standing position and braces for a second hit,"],
+        [null, "though you stop him from actually attempting it."],
+        ["Joe", "If I see you smoking again..."],
+        ["You", "Joe."],
+        [null, "Joe gives you a cold look, before exiting Carle's quarters."],
+        [null, "After several seconds spent coughing, Carle manages to speak."],
+        ["Carle", "You just gonna let him... do that?"],
+        ["You", "..."],
+        ["You", "Joe's right Carle. Get your shit together."]
+      ]
+    },
+    { 
+      "id": "CarleRetort",
+      "text": [
+        ["Carle", "Damn right."]
+      ]
+    },
+    { 
+      "id": "CarleFixDirt",
+      "text": [
+        ["You", "Carle?"],
+        [null, "Carle takes a smoke from a cigarette in his mouth, then looks up at you."],
+        ["Carle", "Always here, cap'n."],
+        ["You", "I've got the materials you asked for."],
+        ["Carle", "Wow! Dirt AND a random mineral! You're a godsend."],
+        ["You", "Could've put it a bit more grandiosely, no?"],
+        ["Carle", "We're down to earth in this greenhouse, cap'n."],
+        ["Carle", "You got time to fix up the dirt with me?"]
+      ],
+      "choice": [
+        ["No time like the present!", "CarleFinalGreenhouse"],
+        ["I've got stuff to do, sadly.", "CarleReject"]
+      ]
+    },
+    { 
+      "id": "CarleFinalGreenhouse",
+      "text": [],
+      "scene": [
+        [[["CatEaten", 1]], "CarleFinalGreenhouse2"],
+        [[["Starvation", 1]], "CarleFinalGreenhouse2"],
+        [[[null, 0]], "CarleFinalGreenhouse1"]
+      ]
+    },
+    { 
+      "id": "CarleFinalGreenhouse2",
+      "text": [
+        [null, "It is surprisingly hard manual labor, mixing together water, dirt, and minerals,"],
+        [null, "but after several hours and more than a little sweat, you've got the viable dirt mixed up."],
+        ["Carle", "Well then."],
+        [null, "Carle wipes his brow with his forearm."],
+        ["Carle", "Food! Finally."],
+        ["You", "Finally, indeed..."],
+        [null, "The mood turns somber as your thoughts go elsewhere."],
+        ["Carle", "...You can head off to bed, Captain, I'll take care of seeding and whatnot, at least."],
+        ["You", "...Right then."]
+      ],
+      "outcome": [["GreenhouseFixed", 1]]
+    },
+    { 
+      "id": "CarleFinalGreenhouse1",
+      "text": [
+        [null, "It is surprisingly hard manual labor, mixing together water, dirt, and minerals,"],
+        [null, "but after several hours and more than a little sweat, you've got the viable dirt mixed up."],
+        ["Carle", "Well then."],
+        [null, "Carle wipes his brow with his forearm."],
+        ["Carle", "Food! Finally."],
+        ["You", "Finally, indeed."],
+        ["Carle", "You can head off to bed, I'll take care of seeding and whatnot, at least."],
+        ["You", "Really?"],
+        ["Carle", "You've helped out enough already, cap'n."],
+        ["You", "Just doing my job, Carle."],
+        ["Carle", "I suppose so. Well, see ya."],
+        ["You", "'See ya' indeed."]
+      ],
+      "outcome": [["GreenhouseFixed", 1]]
     },
     { 
       "id": "CarleFirstQuest",
@@ -28,8 +149,11 @@
       "id": "CarleBuildingReal",
       "text": [
         ["You", "Carle?"],
+        [null, "Carle stubs out a cigarette in an ashtray next to him."],
         ["Carle", "Always here, cap'n."],
-        ["You", "And?"],
+        ["You", "Should you really be smoking?"],
+        ["Carle", "It's medicinal, cap'n."],
+        ["You", "Alright, anyway... anything new?"],
         ["Carle", "Oh, right. Well, with the greenhouse acquired, it's just a question of setting up the prefab, really."],
         ["You", "Easier than expected, honestly."],
         ["Carle", "Also we need to make new viable dirt for the greenhouse, after the leak."],
@@ -41,15 +165,45 @@
       ],
       "choice": [
         ["I suppose I do.", "CarleBuildingDowntime"],
-        ["Not right now, I think", "CarleBuilding"]
+        ["Not right now, I think", "CarleReject"]
       ]
+    },
+    { 
+      "id": "CarleReject",
+      "text": [
+        ["Carle", "Shame. Well, There's always time later!"]
+      ]
+    },
+    { 
+      "id": "CarleBuildingDowntime",
+      "text": [
+        [null, "Several hours later..."],
+        ["You", "You were not being honest on how much work that would be."],
+        ["Carle", "Oh, grow a pair already."],
+        ["You", "So what's the next part?"],
+        ["Carle", "Dirt is nonviable due to all the pollen. Needs water and potassium, I think."],
+        ["You", "Don't we have condensers for water?"],
+        ["Carle", "If we wait like two weeks, maybe. Not a particularly humid atmosphere, frankly."],
+        ["Carle", "Also we need that water to drink, mostly. Especially with food rations instead of proper food."],
+        ["You", "Right, where do I get potassium then?"],
+        ["Carle", "I don't know. Do I look like Fredrick?"],
+        ["You", "Useless as always, man."],
+        ["Carle", "Alas, my omniscience has not come to fruition quite yet, sire."],
+        ["You", "...Since when do you use words like 'omniscience' and 'fruition'?"],
+        ["Carle", "Man, get off my back."],
+        ["You", "Sir yes sir..."]
+      ],
+      "outcome": [["GreenhouseBuilt", 1], ["Day", 1], ["Evening", -1]]
     },
     { 
       "id": "CarleBuilding",
       "text": [
         ["You", "Carle?"],
+        [null, "Carle stubs out a cigarette in an ashtray next to him."],
         ["Carle", "Always here, cap'n."],
-        ["You", "And?"],
+        ["You", "Should you really be smoking?"],
+        ["Carle", "It's medicinal, cap'n."],
+        ["You", "Alright, anyway... anything new?"],
         ["Carle", "Oh, right. Well, with the greenhouse acquired, it's just a question of setting up the prefab, really."],
         ["You", "Easier than expected, honestly."],
         ["Carle", "Also we need to make new viable dirt for the greenhouse, after the leak."],

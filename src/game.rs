@@ -226,9 +226,14 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     const ROCK: Vec2 = Vec2::new(16.0, 16.0);
     const BACKDROP: Vec2 = Vec2::new(96.0, 48.0);
 
+    let backdrop = Sprite {
+        color: Color::srgba(0.7, 0.7, 0.7, 1.0),
+        ..make_sprite("Map/tileset_deeper_and_deeper.png", BACKDROP)
+    };
+
     let sprites = TileSprites {
         rock: make_sprite("Map/tileset_deeper_and_deeper.png", ROCK),
-        backdrop: make_sprite("Map/tileset_deeper_and_deeper.png", BACKDROP),
+        backdrop,
         sodium: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(144.0, 0.0)),
         calcium: make_sprite(
             "Map/tileset_deeper_and_deeper.png",

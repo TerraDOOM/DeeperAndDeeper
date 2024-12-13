@@ -413,9 +413,14 @@ fn spawn_player(
         commands.spawn(WorldTrigger {
             transform: Transform::from_xyz(28000.0, -3400.0, 0.0),
             sprite: Sprite {
-                image: server.load("Portraits/Character_cat.png"),
+                image: server.load("Sprite/SpaceBox_Sprite.png"),
                 custom_size: generous_trigger,
                 ..default()
+            },
+            trigger: TriggerComponent {
+                id: TriggerType::ItemPickup,
+                delete_on_trigger: true,
+                flags: Some("GreenhouseCollected".to_string()),
             },
             ..default()
         });
@@ -427,6 +432,11 @@ fn spawn_player(
                 image: server.load("Portraits/Character_cat.png"),
                 custom_size: generous_trigger,
                 ..default()
+            },
+            trigger: TriggerComponent {
+                id: TriggerType::ItemPickup,
+                delete_on_trigger: true,
+                flags: Some("CoalCollected".to_string()),
             },
             ..default()
         });

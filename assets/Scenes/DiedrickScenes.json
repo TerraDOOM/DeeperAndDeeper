@@ -10,6 +10,7 @@
             [["AutoDocResupplied", 1], "DiedrickSmokingAdvice"], 
             [["DiedrickThanked", 1], "DiedrickSecondQuest"], 
             [["AutoDocFixed", 1], "DiedrickAutoDocThanks"], 
+            [["Evening", 1], "DiedrickAutodocScene"],
             [[null, 0], "DiedrickFirstQuest"]
         ]
     },
@@ -19,6 +20,30 @@
             ["You", "Diedrick?"],
             ["Diedrick", "No."],
             ["You", "Oh."]
+        ]
+    },
+    {
+        "id": "DiedrickAutodocScene",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "Anything on your mind?"],
+            ["Diedrick", "Autodoc still needs fixing, captain. You got the time spare?"]
+        ],
+        "choice": [
+            ["Sure do! (passes time)", "Day1AutoDoc"],
+            ["No, sorry.", "AutodocReject"]
+        ]
+    },
+    {
+        "id": "AutodocReject",
+        "text": [
+            ["Diedrick", "Captain..."],
+            ["You", "There's many things to handle."],
+            ["Diedrick", "The health of our crew members is pretty important."],
+            ["You", "I know. Trust me, I know."],
+            ["Diedrick", "Do you?"],
+            ["You", "...I'll see you later."]
         ]
     },
     {

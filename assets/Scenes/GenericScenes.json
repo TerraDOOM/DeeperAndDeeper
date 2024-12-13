@@ -274,14 +274,14 @@
         ["Carle", "See ya tomorrow, cap'n"],
         ["You", "And you as well."]
       ],
-      "outcome": [["GreenhouseFixed", 1]],
-        "scene": [[[null, 0], "Pass"]]
+      "outcome": [["GreenhouseFixed", 1], ["Day", 1], ["Evening", -1]],
+        "scene": [[[null, 0], "return"]]
     },
     { 
       "id": "Day1Scan",
       "text": [[null, "This should tell you where the important objectives are."]],
-      "outcome": [["PerformedScan", 1]],
-      "scene": [[[null, 0], "Pass"]]
+      "outcome": [["PerformedScan", 1], ["Day", 1], ["Evening", -1]],
+      "scene": [[[null, 0], "return"]]
     },
     { 
       "id": "Day1AirFixed",
@@ -312,8 +312,8 @@
         ["Joe", "Nevermind. I'm heading to bed. Sleep well, we'll work early next morning."],
         ["You", "Right."]
       ],
-      "outcome": [["FiltrationFixed", 1]],
-      "scene": [[[null, 0], "Pass"]]
+      "outcome": [["FiltrationFixed", 1], ["Day", 1], ["Evening", -1]],
+      "scene": [[[null, 0], "return"]]
     },
     { 
       "id": "Day1AutoDoc",
@@ -332,12 +332,25 @@
         ["Diedrick", "You're surely not arguing with your onboard doctor on matters of medicine?"],
         ["You", "...Touché."]
       ],
-      "outcome": [["AutoDocFixed", 1]],
-        "scene": [[[null, 0], "Pass"]]
+      "outcome": [["AutoDocFixed", 1], ["Day", 1], ["Evening", -1]],
+        "scene": [[[null, 0], "return"]]
     },
     { 
       "id": "Day2Morning",
-      "text": [],
+      "text": [
+        [null, "You sleep soundly through the comfort of the night..."],
+        [null, "Or do you?"],
+        [null, "The night is full of horrors, captain. Regret, guilt, responsibility..."],
+        [null, "Can you handle it?"],
+        [null, "..."],
+        [null, "Only time will tell."],
+        [null, "Wake up, and face the music."],
+        ["Liv", "Wake up, captain!"],
+        [null, "You're jolted out of your sleep by Liv's worried shaking."],
+        ["You", "Huh? What's wrong?"],
+        ["Liv", "Just come on out."],
+        [null, "Liv leads you out of your sleeping quarters."]
+    ],
       "scene": [
         [["GreenhouseFixed", 1], "NickOfTime"],
         [["EarlyGreenhouse", 1], "WastedPotential"],

@@ -131,9 +131,10 @@ impl AssetLoader for MapLoader {
 
 fn tile_from_color(color: [u8; 4]) -> Tile {
     match (u32::from_be_bytes(color) & 0xFFFFFF00) >> 8 {
-        0xFF_FF_FF => Tile::Air,
-        0xDD_DD_DD => Tile::Rock,
-        0x00_00_FF => Tile::Ice,
+        0xFF_FF_FF | 0x30_30_30 => Tile::Air,
+        0xFD_DD_00 => Tile::Rock,
+        0x55_cc_ee => Tile::Ice,
+        0x00_00_FF => Tile::Oil,
         _ => Tile::Error,
     }
 }
@@ -176,6 +177,8 @@ pub enum Tile {
     Oil,
     Iron,
     Air,
+    //    CaveWall,
+    //    DynamteBlockade,
 }
 
 impl Tile {
@@ -211,7 +214,7 @@ pub fn spawn_player(
                 ..Default::default()
             },
             RigidBody::KinematicPositionBased,
-            TransformBundle::from(Transform::from_xyz(200.0, 200.0, 0.0)),
+            TransformBundle::from(Transform::from_xyz(100.0 * 10.0, -5.0 * 100.0, 0.0)),
             Collider::cuboid(sprite_size / 2., sprite_size / 2.0),
             Player {
                 grounded: false,
@@ -299,7 +302,7 @@ fn player_movement(
         }
 
         if !player.grounded {
-            player.velocity += Vec2::new(0.0, -400.0) * time.delta_secs();
+            player.velocity += Vec2::new(0.0, -175.0) * time.delta_secs();
         }
         player.velocity = player.velocity.clamp_length_max(100.);
 

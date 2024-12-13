@@ -36,15 +36,24 @@ pub fn game_plugin(app: &mut App) {
     use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
+    let obj = Objectives {
+        time_limit: Some(100),
+        load_time: 0.0,
+        accepted_missions: vec!["Take a shit".to_string()],
+        day: 1,
+        map_flags: vec![],
+    };
+
     app.add_plugins((RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),))
         .add_plugins(RapierDebugRenderPlugin::default())
         .init_asset_loader::<MapLoader>()
         .init_asset::<MapAsset>()
+        .insert_resource(obj)
         .insert_resource(Random::default())
         .add_systems(Startup, load_map)
         .add_systems(
             OnEnter(GameState::Explore),
-            (spawn_player, start_exploration, debugging_info),
+            (spawn_player, start_exploration, spawn_ui, debugging_info),
         )
         .add_systems(
             Update,
@@ -54,6 +63,7 @@ pub fn game_plugin(app: &mut App) {
                 read_character_controller_collisions,
                 change_text_system,
                 on_pickup,
+                time_pressure,
             )
                 .run_if(in_state(GameState::Explore)),
         )
@@ -72,6 +82,16 @@ pub struct Player {
     velocity: Vec2,
     grounded: bool,
     last_pos: Vec2,
+}
+
+
+#[derive(Resource, Debug,Clone)]
+pub struct Objectives {
+    time_limit: Option<usize>,
+    load_time: f64,
+    accepted_missions: Vec<String>,
+    day: usize,
+    map_flags: Vec<String>
 }
 
 #[derive(Component)]
@@ -199,6 +219,9 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
         sprites,
     });
 }
+
+#[derive(Component)]
+struct TimerHud;
 
 pub fn start_exploration(commands: Commands) {}
 
@@ -481,6 +504,65 @@ fn read_character_controller_collisions(
     player.grounded = output.grounded;
 }
 
+fn spawn_ui(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetServer>,mut objective: ResMut<Objectives>) {
+    let font = asset_server.load("fonts/Pixelfont/slkscr.ttf");
+
+
+    let root_uinode = commands
+        .spawn(Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            justify_content: JustifyContent::SpaceBetween,
+            ..default()
+        })
+        .id();
+
+    let left_column = commands
+        .spawn((Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Start,
+            flex_grow: 1.,
+            margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
+            ..default()
+        },            ))
+        .with_children(|builder| {
+            builder
+                .spawn((
+                    Text::default(),
+                    TextFont {
+                        font: font.clone(),
+                        font_size: 40.0,
+                        ..default()
+                    },
+                    TimerHud,
+                ))
+                .with_children(|p| {
+                    p.spawn((
+                        TextSpan::default(),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 40.0,
+                            ..default()
+                        },
+                        TextColor(WHITE.into()),
+                    ));
+                    p.spawn((
+                        TextSpan::default(),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 40.0,
+                            ..default()
+                        },
+                        TextColor(WHITE.into()),
+                    ));
+                });
+        })
+        .id();
+    commands.entity(root_uinode).add_children(&[left_column]);
+    objective.load_time = time.elapsed().as_secs_f64();
+}
+
 fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
@@ -537,6 +619,29 @@ fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
         })
         .id();
     commands.entity(root_uinode).add_children(&[right_column]);
+}
+
+fn time_pressure(time: Res<Time>,mut commands: Commands, asset_server: ResMut<AssetServer>,query: Query<Entity, With<TimerHud>>,
+                 objective: ResMut<Objectives>,
+                 mut writer: TextUiWriter,) {
+    let mut t = time.elapsed().as_secs_f64() - objective.load_time;
+
+    if let Some(timer) = objective.time_limit{
+        t = (timer as f64) - t;
+
+        if t < 0.0{
+            println!("You have run out of oxygen");
+        }
+    }
+    for entity in &query {
+        let display_time = t.max(0.0001);
+
+        *writer.text(entity, 0) =
+            format!("{display_time}",);
+//        *writer.text(entity, 1) = format!("You are fucked");
+    }
+
+
 }
 
 #[derive(Component)]

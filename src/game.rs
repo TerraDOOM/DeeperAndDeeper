@@ -5,6 +5,7 @@ use bevy::{
 use bevy::{
     color::palettes::css::*,
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    input::common_conditions::input_just_pressed,
     ui::widget::TextUiWriter,
 };
 use bevy_rapier2d::{prelude::*, rapier::geometry::CollisionEventFlags};
@@ -72,7 +73,7 @@ pub fn game_plugin(app: &mut App) {
                 on_pickup,
                 time_pressure,
                 execute_animations,
-                trigger_animation,
+                show_z,
             )
                 .run_if(in_state(GameState::Explore)),
         )
@@ -328,13 +329,14 @@ fn spawn_player(
     let height = windows.single().resolution.height();
 
     let background_size = Some(Vec2::new(width, height));
-    let background_position = Transform::from_xyz(0.0, 0.0, 10.0);
+    let background_position = Transform::from_xyz(0.0, 0.0, -1000.0);
 
     let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_frame_1-9.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(600), 8, 2, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 9, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_config_1 = AnimationConfig::new(1, 8, 10);
+    let mut animation_config_1 = AnimationConfig::new(0, 1, 8, 10);
+    animation_config_1.running = true;
 
     let enc = commands.spawn((
         Sprite {
@@ -346,6 +348,7 @@ fn spawn_player(
             }),
             ..Default::default()
         },
+        animation_config_1,
         background_position,
         BackgroundExplore,
     ));
@@ -357,7 +360,7 @@ fn spawn_player(
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_config_1 = AnimationConfig::new(1, 4, 10);
+    let animation_config_1 = AnimationConfig::new(0, 0, 3, 10);
 
     // player init
     commands
@@ -385,8 +388,8 @@ fn spawn_player(
             OnExploration,
         ))
         .insert(KinematicCharacterController {
-            // snap_to_ground: Some(CharacterLength::Absolute(4.0)),
-            offset: CharacterLength::Absolute(1.0),
+            snap_to_ground: Some(CharacterLength::Absolute(10.0)),
+            offset: CharacterLength::Absolute(2.0),
             autostep: Some(CharacterAutostep {
                 min_width: CharacterLength::Absolute(1.0),
                 max_height: CharacterLength::Absolute(1.0),
@@ -636,17 +639,30 @@ fn player_movement(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut jump_buffer: Local<usize>,
-    mut player_info: Query<(&mut Player, &mut KinematicCharacterController)>,
+    mut player_info: Query<(
+        &mut Player,
+        &mut Sprite,
+        &mut AnimationConfig,
+        &mut KinematicCharacterController,
+    )>,
 ) {
     *jump_buffer = jump_buffer.saturating_sub(1);
 
-    for (mut player, mut controller) in &mut player_info {
+    for (mut player, mut sprite, mut animation, mut controller) in &mut player_info {
         let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
         let down = keyboard_input.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]);
         let left = keyboard_input.any_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]);
         let right = keyboard_input.any_pressed([KeyCode::KeyD, KeyCode::ArrowRight]);
         if keyboard_input.just_pressed(KeyCode::KeyW) && !player.grounded {
             *jump_buffer = 6;
+        }
+
+        animation.running = player.grounded && (left || right);
+
+        if left && !right {
+            sprite.flip_x = true;
+        } else if right && !left {
+            sprite.flip_x = false;
         }
 
         // jump
@@ -703,7 +719,8 @@ fn update_camera(
     camera
         .translation
         .smooth_nudge(&direction, 10.0, time.delta_secs());
-    background.translation = camera.translation;
+    background.translation.x = camera.translation.x;
+    background.translation.y = camera.translation.y;
 }
 
 fn read_character_controller_collisions(
@@ -729,7 +746,7 @@ fn read_character_controller_collisions(
         if player.velocity.y <= -165.0 {
             transform.translation = player.last_pos.extend(0.0);
         }
-        player.velocity.y = player.velocity.y.max(0.0);
+        player.velocity.y = player.velocity.y.max(-0.1);
     }
 
     player.grounded = output.grounded;
@@ -972,52 +989,62 @@ fn std_deviation(data: &[f64]) -> Option<f64> {
     }
 }
 
-fn execute_animations(time: Res<Time>, mut query: Query<(&mut AnimationConfig, &mut Sprite)>) {
+fn execute_animations(
+    time: Res<Time>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<(&mut AnimationConfig, &mut Sprite)>,
+) {
     for (mut config, mut sprite) in &mut query {
-        // we track how long the current sprite has been displayed for
-        config.frame_timer.tick(time.delta());
+        if config.running {
+            config.timer.tick(time.delta());
 
-        // If it has been displayed for the user-defined amount of time (fps)...
-        if config.frame_timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                if atlas.index == config.last_sprite_index {
-                    // ...and it IS the last frame, then we move back to the first frame and stop.
-                    atlas.index = config.first_sprite_index;
-                } else {
-                    // ...and it is NOT the last frame, then we move to the next frame...
-                    atlas.index += 1;
-                    // ...and reset the frame timer to start counting all over again
-                    config.frame_timer = AnimationConfig::timer_from_fps(config.fps);
+            if config.timer.just_finished() {
+                if let Some(atlas) = &mut sprite.texture_atlas {
+                    atlas.index = if atlas.index == config.last_sprite_index {
+                        config.first_sprite_index
+                    } else {
+                        atlas.index + 1
+                    };
                 }
+            }
+        } else {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                atlas.index = config.idle_index;
             }
         }
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct AnimationConfig {
+    idle_index: usize,
     first_sprite_index: usize,
     last_sprite_index: usize,
     fps: u8,
-    frame_timer: Timer,
+    timer: Timer,
+    running: bool,
 }
 
-fn trigger_animation(mut animation: Single<&mut AnimationConfig, With<Player>>) {
-    // we create a new timer when the animation is triggered
-    animation.frame_timer = AnimationConfig::timer_from_fps(animation.fps);
+fn show_z(bg: Single<&AnimationConfig, With<BackgroundExplore>>) {
+    let bg = dbg!(bg.into_inner());
 }
 
 impl AnimationConfig {
-    fn new(first: usize, last: usize, fps: u8) -> Self {
+    fn new(idle: usize, first: usize, last: usize, fps: u8) -> Self {
         Self {
+            idle_index: idle,
             first_sprite_index: first,
             last_sprite_index: last,
             fps,
-            frame_timer: Self::timer_from_fps(fps),
+            timer: Self::timer_from_fps(fps),
+            running: false,
         }
     }
 
     fn timer_from_fps(fps: u8) -> Timer {
-        Timer::new(Duration::from_secs_f32(1.0 / (fps as f32)), TimerMode::Once)
+        Timer::new(
+            Duration::from_secs_f32(1.0 / (fps as f32)),
+            TimerMode::Repeating,
+        )
     }
 }

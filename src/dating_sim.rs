@@ -82,15 +82,6 @@ type Cond = Vec<Check>;
 struct FollowsMouse;
 
 #[derive(Component)]
-struct AnimateTranslation;
-
-#[derive(Component)]
-struct AnimateRotation;
-
-#[derive(Component)]
-struct AnimateScale;
-
-#[derive(Component)]
 struct Cursor(isize);
 
 #[derive(Component)]

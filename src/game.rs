@@ -1,5 +1,5 @@
 use bevy::{
-    asset::{AssetLoader, LoadContext, io::Reader},
+    asset::{io::Reader, AssetLoader, LoadContext},
     prelude::*,
 };
 use bevy::{
@@ -17,7 +17,7 @@ use rand::prelude::*;
 
 pub mod floodfill;
 
-use super::{GameState, despawn_screen};
+use super::{despawn_screen, GameState};
 
 #[derive(Resource)]
 struct Random {
@@ -263,6 +263,20 @@ pub fn spawn_player(
         })
         .insert(ActiveCollisionTypes::KINEMATIC_STATIC);
 
+    commands.spawn(Collectable {
+        sprite: SpriteBundle {
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: Some(Vec2::new(sprite_size, sprite_size)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(600.0, -7000.0, 0.0),
+            ..Default::default()
+        },
+        collider: Collider::ball(50.0),
+        ..Default::default()
+    });
+
     let tiles: &Vec<[Tile; 1000]> = &maps.get(&map.handle).unwrap().tiles;
 
     let flood = floodfill::floodfill_all(tiles);
@@ -279,7 +293,8 @@ pub fn spawn_player(
 
     for (x, row) in tiles.iter().enumerate() {
         for (y, tile) in row.iter().enumerate() {
-            let transform = Transform::from_xyz(x as f32 * 100.0 - 2.0, -(y as f32 * 100.0 - 2.0), -1.0);
+            let transform =
+                Transform::from_xyz(x as f32 * 100.0 - 2.0, -(y as f32 * 100.0 - 2.0), -1.0);
 
             commands.spawn((
                 transform,
@@ -312,6 +327,47 @@ pub fn is_exposed_and_solid(tiles: &Vec<[Tile; 1000]>, x: usize, y: usize) -> bo
         } else {
             false
         }
+    }
+}
+
+#[derive(Event)]
+struct ItemPickupEvent {
+    item_id: usize,
+}
+
+#[derive(Component, Default)]
+struct Item {
+    id: usize,
+}
+
+#[derive(Bundle)]
+struct Collectable {
+    sprite: SpriteBundle,
+    collider: Collider,
+    sensor: Sensor,
+    item: Item,
+    active_events: ActiveEvents,
+}
+
+impl Default for Collectable {
+    fn default() -> Self {
+        Self {
+            sprite: default(),
+            collider: default(),
+            sensor: Sensor,
+            item: default(),
+            active_events: ActiveEvents::COLLISION_EVENTS,
+        }
+    }
+}
+
+fn check_triggers(
+    mut reader: EventReader<CollisionEvent>,
+    mut writer: EventWriter<ItemPickupEvent>,
+    sensors: Query<(Entity, &Item), With<Sensor>>,
+) {
+    for collision in reader.read() {
+        println!("Collision: {:?}", collision);
     }
 }
 

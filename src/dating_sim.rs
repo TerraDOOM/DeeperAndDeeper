@@ -384,7 +384,7 @@ fn start_talking(
     };
 
     let talk_size = Vec2::new(width / 1.3, height / 3.0);
-    let talk_position = Vec2::new(width / 8.0, -height / 2.5);
+    let talk_position = Vec2::new(width / 8.0, -height / 2.7);
 
     if (context.selected_scene.text.len() > 0) {
         let dialogue = context.selected_scene.text[0].1.clone();
@@ -424,8 +424,8 @@ fn start_talking(
                     },
                     Transform::from_translation(
                         (talk_position
-                            + Vec2::new(talk_size.x / 2.0, talk_size.y / 2.0 + height / 20.0))
-                        .extend(1.0),
+                            + Vec2::new(talk_size.x / 2.0 - width / 6.0, talk_size.y / 3.0))
+                        .extend(0.8),
                     ),
                     TalkObj,
                 ))
@@ -437,9 +437,9 @@ fn start_talking(
                         slightly_smaller_text_font.clone(),
                         TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                         // Wrap text in the rectangle
-                        TextBounds::from(talk_size * 0.75),
+                        TextBounds::from(talk_size),
                         // ensure the text is drawn on top of the box
-                        Transform::from_translation(Vec3::Z),
+                        Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
                     ));
                 });
 
@@ -648,7 +648,7 @@ fn talking_action(
                     let width = window.resolution.width();
                     let height = window.resolution.height();
                     let talk_size = Vec2::new(width / 1.3, height / 3.0);
-                    let talk_position = Vec2::new(width / 8.0, -height / 2.5);
+                    let talk_position = Vec2::new(width / 8.0, -height / 2.7);
                     commands
                         .spawn((
                             Sprite {
@@ -659,10 +659,10 @@ fn talking_action(
                             Transform::from_translation(
                                 (talk_position
                                     + Vec2::new(
-                                        talk_size.x / 2.0,
-                                        talk_size.y / 2.0 + height / 20.0,
+                                        talk_size.x / 2.0 - width / 6.0,
+                                        talk_size.y / 3.0,
                                     ))
-                                .extend(1.0),
+                                .extend(0.8),
                             ),
                             TalkObj,
                         ))
@@ -674,9 +674,9 @@ fn talking_action(
                                 slightly_smaller_text_font.clone(),
                                 TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                                 // Wrap text in the rectangle
-                                TextBounds::from(talk_size * 0.75),
+                                TextBounds::from(talk_size),
                                 // ensure the text is drawn on top of the box
-                                Transform::from_translation(Vec3::Z),
+                                Transform::from_translation(Vec3::new(-85.0, 23.0, 1.0)),
                             ));
                         });
 
@@ -785,6 +785,7 @@ fn cursor_action(
     mut query: Query<&mut Transform, With<Cursor>>,
     mut context: ResMut<DatingContext>,
     mut tmp: ResMut<NextState<DatingState>>,
+    mut tmp_super: ResMut<NextState<GameState>>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     // Consider changing font-size instead of scaling the transform. Scaling a Text2D will scale the
@@ -804,7 +805,8 @@ fn cursor_action(
 
     if confirm {
         if context.cursor == -5 {
-            todo!();
+            tmp.set(DatingState::Noting);
+            tmp_super.set(GameState::Explore);
         } else {
             let talk_key = context.all_characters[(context.cursor + 3) as usize]
                 .current_dialogue

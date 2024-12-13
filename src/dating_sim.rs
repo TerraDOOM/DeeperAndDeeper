@@ -223,7 +223,7 @@ fn on_dating_sim(
     let entity = camera.into_inner();
 
     commands.entity(entity).despawn();
-    commands.spawn(Camera2d);
+    commands.spawn(Camera2d).insert(Transform::default()).insert();
 
     commands.spawn((
         AudioPlayer::new(asset_server.load("Music/Music_InShip.ogg")),

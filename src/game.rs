@@ -40,7 +40,7 @@ pub fn game_plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
     let obj = Objectives {
-        time_limit: Some(100),
+        time_limit: Some(5),
         load_time: 0.0,
         accepted_missions: vec!["Take a shit".to_string()],
         day: 1,
@@ -74,7 +74,6 @@ pub fn game_plugin(app: &mut App) {
                 on_pickup,
                 time_pressure,
                 execute_animations,
-                show_z,
             )
                 .run_if(in_state(GameState::Explore)),
         )
@@ -318,8 +317,11 @@ fn spawn_player(
     maps: Res<Assets<MapAsset>>,
     mut rapier_config: Query<&mut RapierConfiguration>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    bg: Option<Single<Entity, (With<Transform>, With<BackgroundExplore>)>>,
     windows: Query<&mut Window>,
 ) {
+    log::info!("spawning player");
+
     let mut rapier_config = rapier_config.single_mut();
     // Set gravity to 0.0 and spawn camera.
     rapier_config.gravity = Vec2::ZERO;
@@ -344,20 +346,22 @@ fn spawn_player(
     let mut animation_config_1 = AnimationConfig::new(0, 1, 16, 10);
     animation_config_1.running = true;
 
-    let enc = commands.spawn((
-        Sprite {
-            image: texture.clone(),
-            custom_size: background_size,
-            texture_atlas: Some(TextureAtlas {
-                layout: texture_atlas_layout.clone(),
-                index: animation_config_1.first_sprite_index,
-            }),
-            ..Default::default()
-        },
-        animation_config_1,
-        background_position,
-        BackgroundExplore,
-    ));
+    if bg.is_none() {
+        commands.spawn((
+            Sprite {
+                image: texture.clone(),
+                custom_size: background_size,
+                texture_atlas: Some(TextureAtlas {
+                    layout: texture_atlas_layout.clone(),
+                    index: animation_config_1.first_sprite_index,
+                }),
+                ..Default::default()
+            },
+            animation_config_1,
+            background_position,
+            BackgroundExplore,
+        ));
+    }
 
     let random_number = rng.rng.gen_range(0..5);
     commands.spawn((
@@ -557,14 +561,20 @@ fn spawn_player(
             .map(|(x, y)| Vec2::new(x as f32 * 100.0 as f32 - 50.0, y as f32 * -100.0 + 50.0))
             .collect::<Vec<Vec2>>();
 
-        commands.spawn((RigidBody::Fixed, Collider::polyline(vertices, None)));
+        commands.spawn((
+            RigidBody::Fixed,
+            Collider::polyline(vertices, None),
+            OnExploration,
+        ));
     }
+
+    let mut sprites = Vec::with_capacity(1000 * 1000);
 
     for (x, row) in tiles.iter().enumerate() {
         for (y, tile) in row.iter().enumerate() {
             let transform = Transform::from_xyz(x as f32 * 100.0, -(y as f32 * 100.0), -1.0);
 
-            commands.spawn((
+            sprites.push((
                 transform,
                 Sprite {
                     flip_x: rng.rng.gen::<bool>(),
@@ -575,6 +585,8 @@ fn spawn_player(
             ));
         }
     }
+
+    commands.spawn_batch(sprites);
 }
 
 pub fn is_exposed_and_solid(tiles: &Vec<[Tile; 1000]>, x: usize, y: usize) -> bool {
@@ -1100,10 +1112,6 @@ struct AnimationConfig {
     fps: u8,
     timer: Timer,
     running: bool,
-}
-
-fn show_z(bg: Single<&AnimationConfig, With<BackgroundExplore>>) {
-    let bg = dbg!(bg.into_inner());
 }
 
 impl AnimationConfig {

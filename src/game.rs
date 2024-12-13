@@ -145,14 +145,21 @@ fn tile_from_color(color: [u8; 4]) -> Tile {
 
 fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     let map: Handle<MapAsset> = asset_server.load("Map/map.png");
-    let make_sprite = |image: &str| Sprite {
+    let make_sprite = |image: &str, coord| Sprite {
         image: asset_server.load(image),
         custom_size: Some(Vec2::new(100.0, 100.0)),
+        rect: Some(Rect {
+            min: coord,
+            max: coord + SPRITE_SIZE,
+        }),
         ..Default::default()
     };
 
+    const SPRITE_SIZE: Vec2 = Vec2::new(16.0, 16.0);
+    const ROCK: Vec2 = Vec2::new(96.0, 48.0);
+
     let sprites = TileSprites {
-        rock: make_sprite("Map/rock.png"),
+        rock: make_sprite("Map/tileset.png", ROCK),
         nothing: Sprite {
             color: Color::WHITE,
             custom_size: Some(Vec2::new(100.0, 100.0)),

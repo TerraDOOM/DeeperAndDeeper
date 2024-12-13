@@ -69,6 +69,8 @@ pub struct DatingScene {
     mission: Option<MissionType>,
     #[serde(default, rename = "scene")]
     next_scene: Vec<(Cond, SceneID)>,
+    #[serde(default)]
+    black: bool,
 }
 
 type Check = (Option<Flag>, isize);
@@ -242,11 +244,15 @@ fn on_dating_sim(
 #[derive(Component)]
 struct MyOST;
 
+#[derive(Component)]
+struct Background;
+
 fn on_chill(
     mut commands: Commands,
     context: ResMut<DatingContext>,
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
+    background: Option<Single<&mut Sprite, With<Background>>>,
 ) {
     let window = windows.single();
     let width = window.resolution.width();
@@ -267,17 +273,22 @@ fn on_chill(
 
     //Cursor initialisation
 
-    let background_size = Some(Vec2::new(width, height));
-    let background_position = Vec2::new(0.0, 0.0);
-    let enc = commands.spawn((
-        Sprite {
-            image: asset_server.load("Backgrounds/deeper_deeper_base.png"),
-            custom_size: background_size,
-            ..Default::default()
-        },
-        Transform::from_translation(background_position.extend(-1.0)),
-        DatingObj,
-    ));
+    if let Some(mut background) = background.map(Single::into_inner) {
+        background.color = Color::srgba(1.0, 1.0, 1.0, 1.0);
+    } else {
+        let background_size = Some(Vec2::new(width, height));
+        let background_position = Vec2::new(0.0, 0.0);
+        commands.spawn((
+            dbg!(Sprite {
+                image: asset_server.load("Backgrounds/deeper_deeper_base.png"),
+                custom_size: background_size,
+                ..Default::default()
+            }),
+            Transform::from_translation(background_position.extend(-1.0)),
+            Background,
+            DatingObj,
+        ));
+    }
 
     let cursor_size = Vec2::new(width / 8.0, width / 8.0);
     let cursor_position = Vec2::new(0.0, 250.0);
@@ -406,7 +417,6 @@ fn start_talking(
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
-    println!("started talking");
     let window = windows.single();
     let width = window.resolution.width();
     let height = window.resolution.height();
@@ -652,6 +662,7 @@ fn talking_action(
     asset_server: Res<AssetServer>,
     mut tmp: ResMut<NextState<DatingState>>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
+    background: Single<&mut Sprite, With<Background>>,
 ) {
     let confirm = keyboard_input.just_pressed(KeyCode::Enter)
         || keyboard_input.just_pressed(KeyCode::Space)
@@ -659,6 +670,14 @@ fn talking_action(
     let escape = keyboard_input.just_pressed(KeyCode::Escape);
 
     let (entity, mut textbox, mut text, is_empty) = query.into_inner();
+
+    let mut background = background.into_inner();
+
+    if context.selected_scene.black {
+        background.color = Color::srgba(0.0, 0.0, 0.0, 1.0);
+    } else {
+        background.color = Color::srgba(1.0, 1.0, 1.0, 1.0);
+    }
 
     if escape {
         tmp.set(DatingState::Chilling);
@@ -745,7 +764,6 @@ fn talking_action(
             }
         } else {
             //We have finished reading
-            dbg!(context.selected_scene.clone());
 
             // add the mission
             if let Some(mission) = context.selected_scene.mission {
@@ -785,9 +803,6 @@ fn talking_action(
             // else, find more dialogue or quit
             else if context.selected_scene.next_scene.len() > 0 {
                 for (cond, next_scene) in context.selected_scene.next_scene.clone() {
-                    println!("=== cond for {next_scene} ===");
-                    format_cond(&cond);
-
                     let mut passed = true;
 
                     for (ref flag, threshold) in cond {
@@ -795,8 +810,6 @@ fn talking_action(
                     }
 
                     if passed {
-                        println!("GOING TO {next_scene}");
-
                         if next_scene.to_lowercase() == "return" {
                             tmp.set(DatingState::Chilling);
                             break;
@@ -811,7 +824,8 @@ fn talking_action(
                                     .remove::<EmptyScene>()
                                     .insert_if(EmptyScene, || {
                                         context.selected_scene.text.is_empty()
-                                    });
+                                    })
+                                    .log_components();
                                 textbox.0 = 0;
                                 let dialogue = context.selected_scene.text[0].1.clone();
                                 *text = Text2d::new(dialogue);

@@ -13,9 +13,24 @@ use image::{self, GenericImageView};
 
 use std::{collections::VecDeque, time::Duration};
 
+use rand::prelude::*;
+
 pub mod floodfill;
 
 use super::{GameState, despawn_screen};
+
+#[derive(Resource)]
+struct Random {
+    rng: StdRng,
+}
+
+impl Default for Random {
+    fn default() -> Self {
+        Random {
+            rng: StdRng::from_seed([0xDA; 32]),
+        }
+    }
+}
 
 pub fn game_plugin(app: &mut App) {
     use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
@@ -25,6 +40,7 @@ pub fn game_plugin(app: &mut App) {
         .add_plugins(RapierDebugRenderPlugin::default())
         .init_asset_loader::<MapLoader>()
         .init_asset::<MapAsset>()
+        .insert_resource(Random::default())
         .add_systems(Startup, load_map)
         .add_systems(
             OnEnter(GameState::Explore),
@@ -136,9 +152,10 @@ impl AssetLoader for MapLoader {
 
 fn tile_from_color(color: [u8; 4]) -> Tile {
     match (u32::from_be_bytes(color) & 0xFFFFFF00) >> 8 {
-        0xFF_FF_FF => Tile::Air,
-        0xDD_DD_DD => Tile::Rock,
-        0x00_00_FF => Tile::Ice,
+        0xFF_FF_FF | 0x30_30_30 => Tile::Air,
+        0xFD_DD_00 => Tile::Rock,
+        0x55_cc_ee => Tile::Ice,
+        0x00_00_FF => Tile::Oil,
         _ => Tile::Error,
     }
 }
@@ -147,7 +164,7 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     let map: Handle<MapAsset> = asset_server.load("Map/map.png");
     let make_sprite = |image: &str, coord| Sprite {
         image: asset_server.load(image),
-        custom_size: Some(Vec2::new(100.0, 100.0)),
+        custom_size: Some(Vec2::new(104.0, 104.0)),
         rect: Some(Rect {
             min: coord,
             max: coord + SPRITE_SIZE,
@@ -159,9 +176,9 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     const ROCK: Vec2 = Vec2::new(96.0, 48.0);
 
     let sprites = TileSprites {
-        rock: make_sprite("Map/tileset.png", ROCK),
+        rock: make_sprite("Map/tileset_deeper_and_deeper.png", ROCK),
         nothing: Sprite {
-            color: Color::WHITE,
+            color: Color::rgba(0.0, 0.0, 0.0, 0.0),
             custom_size: Some(Vec2::new(100.0, 100.0)),
             ..Default::default()
         },
@@ -202,6 +219,7 @@ impl Tile {
 
 pub fn spawn_player(
     mut commands: Commands,
+    mut rng: ResMut<Random>,
     server: Res<AssetServer>,
     map: Res<ExplorationMap>,
     maps: Res<Assets<MapAsset>>,
@@ -223,7 +241,7 @@ pub fn spawn_player(
                 ..Default::default()
             },
             RigidBody::KinematicPositionBased,
-            TransformBundle::from(Transform::from_xyz(200.0, 200.0, 0.0)),
+            TransformBundle::from(Transform::from_xyz(200.0, -7000.0, 0.0)),
             Collider::cuboid(sprite_size / 2., sprite_size / 2.0),
             Player {
                 grounded: false,
@@ -261,9 +279,17 @@ pub fn spawn_player(
 
     for (x, row) in tiles.iter().enumerate() {
         for (y, tile) in row.iter().enumerate() {
-            let transform = Transform::from_xyz(x as f32 * 100.0, -(y as f32 * 100.0), -1.0);
+            let transform = Transform::from_xyz(x as f32 * 100.0 - 2.0, -(y as f32 * 100.0 - 2.0), -1.0);
 
-            commands.spawn((transform, map.get_sprite(tiles[y][x]), OnExploration));
+            commands.spawn((
+                transform,
+                Sprite {
+                    flip_x: rng.rng.gen::<bool>(),
+                    flip_y: rng.rng.gen::<bool>(),
+                    ..map.get_sprite(tiles[y][x])
+                },
+                OnExploration,
+            ));
         }
     }
 }

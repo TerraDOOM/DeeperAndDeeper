@@ -2106,6 +2106,7 @@ dependencies = [
  "bevy",
  "bevy_rapier2d",
  "image",
+ "rand",
  "serde",
  "serde_json",
 ]

@@ -203,6 +203,8 @@ fn tile_from_color(color: [u8; 4]) -> Tile {
         0xFD_DD_00 => Tile::Rock,
         0x55_cc_ee => Tile::Ice,
         0x00_00_FF => Tile::Oil,
+        0xFF_00_00 => Tile::Sulfur,
+        0x77_44_ff => Tile::Coal,
         _ => Tile::Error,
     }
 }
@@ -271,13 +273,15 @@ pub enum Tile {
     Iron,
     Air,
     Wall,
+    Sulfur,
+    Coal,
 }
 
 impl Tile {
     fn is_solid(&self) -> bool {
         use Tile as T;
         match self {
-            T::Error | T::Rock | T::Ice | T::Oil | T::Iron => true,
+            T::Error | T::Sulfur | T::Coal | T::Rock | T::Ice | T::Oil | T::Iron => true,
             T::Air | T::Wall => false,
         }
     }
@@ -392,15 +396,87 @@ fn spawn_player(
         })
         .insert(ActiveCollisionTypes::KINEMATIC_STATIC);
 
-    commands.spawn(WorldTrigger {
-        transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
-        sprite: Sprite {
-            image: server.load("Portraits/Character_cat.png"),
-            custom_size: Some(Vec2::new(sprite_size, sprite_size)),
+    //Place all triggers
+    {
+        let generous_trigger = Some(Vec2::new(500.0, 500.0));
+
+        //Greenhouse
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(28000.0, -3400.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
             ..default()
-        },
-        ..default()
-    });
+        });
+
+        //coal TODO
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            ..default()
+        });
+        //sodium: Sprite TODO
+        //calcium: Sprite TODO
+        //sulfur
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(23100.0, -20100.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            ..default()
+        });
+        //potassium TODO
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            ..default()
+        });
+
+        //iron
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(274.0 * 100.0, -11600.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            ..default()
+        });
+
+        //oil
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            ..default()
+        });
+
+        //beacon TODO
+        commands.spawn(WorldTrigger {
+            transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
+            sprite: Sprite {
+                image: server.load("Portraits/Character_cat.png"),
+                custom_size: generous_trigger,
+                ..default()
+            },
+            ..default()
+        });
+    }
 
     // the second (right-hand) sprite runs at 20 FPS
     let MapAsset {

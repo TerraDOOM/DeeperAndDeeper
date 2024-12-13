@@ -331,11 +331,11 @@ fn spawn_player(
     let background_size = Some(Vec2::new(width, height));
     let background_position = Transform::from_xyz(0.0, 0.0, -1000.0);
 
-    let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_frame_1-9.png");
+    let texture = server.load("Backgrounds/deeper_deeper_galaxy_animation_packed.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 9, 1, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(1000, 600), 4, 5, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let mut animation_config_1 = AnimationConfig::new(0, 1, 8, 10);
+    let mut animation_config_1 = AnimationConfig::new(0, 0, 16, 5);
     animation_config_1.running = true;
 
     let enc = commands.spawn((
@@ -1025,9 +1025,7 @@ struct AnimationConfig {
     running: bool,
 }
 
-fn show_z(bg: Single<&AnimationConfig, With<BackgroundExplore>>) {
-    let bg = dbg!(bg.into_inner());
-}
+fn show_z(bg: Single<&AnimationConfig, With<BackgroundExplore>>) {}
 
 impl AnimationConfig {
     fn new(idle: usize, first: usize, last: usize, fps: u8) -> Self {

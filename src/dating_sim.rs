@@ -65,7 +65,7 @@ pub struct DatingScene {
     id: SceneID,
     text: Vec<(Option<CharactersType>, String)>,
     outcome: Option<Vec<(Flag, isize)>>,
-    choice: Option<((String, String), (String, String))>,
+    choice: Option<Vec<(String, String)>>,
     mission: Option<MissionType>,
     #[serde(default, rename = "scene")]
     next_scene: Vec<(Cond, SceneID)>,
@@ -530,7 +530,13 @@ fn on_choosing(
     let option_size = Vec2::new(width / 2.0, height / 5.0);
     let option_position_1 = Vec2::new(0.0, height / 4.0);
     let option_position_2 = Vec2::new(0.0, -height / 4.0);
-    if let Some(((label_1, id_1), (label_2, id_2))) = context.selected_scene.choice.clone() {
+    for (label, id) in context
+        .selected_scene
+        .choice
+        .as_ref()
+        .unwrap_or(&vec![])
+        .iter()
+    {
         commands.spawn((
             Sprite::from_color(Color::srgb(0.20, 0.7, 0.20), option_size * 1.2),
             Transform::from_translation(option_position_1.extend(-0.5)),
@@ -540,31 +546,16 @@ fn on_choosing(
             .spawn((
                 Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
                 Transform::from_translation(option_position_1.extend(0.0)),
-                ChoiceObj(id_1),
+                ChoiceObj(id.clone()),
             ))
             .with_children(|builder| {
                 builder.spawn((
-                    Text2d::new(label_1),
+                    Text2d::new(label),
                     slightly_smaller_text_font.clone(),
                     TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                     TextBounds::from(option_size * 0.85),
                     Transform::from_translation(Vec3::Z),
                     TextColor(Color::srgb(0.0, 0.0, 0.0)),
-                ));
-            });
-        commands
-            .spawn((
-                Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), option_size),
-                Transform::from_translation(option_position_2.extend(0.0)),
-                ChoiceObj(id_2),
-            ))
-            .with_children(|builder| {
-                builder.spawn((
-                    Text2d::new(label_2),
-                    slightly_smaller_text_font.clone(),
-                    TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
-                    TextBounds::from(option_size * 0.85),
-                    Transform::from_translation(Vec3::Z),
                 ));
             });
     }
@@ -601,30 +592,15 @@ fn choose_move(
 
     if confirm {
         if let Some(choices) = context.selected_scene.choice.clone() {
-            if context.cursor == 0 {
-                if (choices.0 .1).to_lowercase() == "return" {
-                    tmp.set(DatingState::Chilling);
-                } else {
-                    for scene in context.scenes.clone() {
-                        dbg!(scene.id == choices.0 .1);
-                        if scene.id == choices.0 .1 {
-                            context.selected_scene = scene;
-                            tmp.set(DatingState::Talking);
-                            break;
-                        };
-                    }
-                }
+            if (choices[context.cursor as usize].1).to_lowercase() == "return" {
+                tmp.set(DatingState::Chilling);
             } else {
-                if (choices.1 .1).to_lowercase() == "return" {
-                    tmp.set(DatingState::Chilling);
-                } else {
-                    for scene in context.scenes.clone() {
-                        if scene.id == choices.1 .1 {
-                            context.selected_scene = scene;
-                            tmp.set(DatingState::Talking);
-                            break;
-                        };
-                    }
+                for scene in context.scenes.clone() {
+                    if scene.id == choices[context.cursor as usize].1 {
+                        context.selected_scene = scene;
+                        tmp.set(DatingState::Talking);
+                        break;
+                    };
                 }
             }
         }

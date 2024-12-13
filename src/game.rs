@@ -71,6 +71,8 @@ pub fn game_plugin(app: &mut App) {
                 change_text_system,
                 on_pickup,
                 time_pressure,
+                execute_animations,
+                trigger_animation,
             )
                 .run_if(in_state(GameState::Explore)),
         )
@@ -299,18 +301,18 @@ fn spawn_player(
 
     let sprite_size = 100.0;
 
-    commands.spawn((
-        AudioPlayer::new(server.load("sounds/hev charger drip car.mp3")),
-        OutsideOST,
-    ));
+    // commands.spawn((
+    //     AudioPlayer::new(server.load("sounds/hev charger drip car.mp3")),
+    //     OutsideOST,
+    // ));
+
+    commands.spawn(AudioPlayer::new(server.load("Music/drip.ogg")));
 
     let texture = server.load("Sprite/Player_Walking_Sprite-Sheet.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_config_1 = AnimationConfig::new(1, 4, 5);
-
-    // create the first (left-hand) sprite
+    let animation_config_1 = AnimationConfig::new(1, 4, 10);
 
     // player init
     commands
@@ -421,13 +423,14 @@ fn create_spaceship(mut commands: Commands, server: ResMut<AssetServer>) {
     commands.spawn(WorldTrigger {
         sprite: Sprite {
             image: server.load("Sprite/SpacShip_Sprite.png"),
-            custom_size: Some(Vec2::new(300.0, 300.0)),
+            custom_size: Some(Vec2::new(1600.0, 800.0)),
             ..default()
         },
-        transform: Transform::from_xyz(6500.0, -7500.0, 0.0),
+        transform: Transform::from_xyz(6000.0, -7400.0, 0.0),
         collider: Collider::cuboid(150.0, 150.0),
         trigger: TriggerComponent {
             id: TriggerType::Ship,
+            delete_on_trigger: false,
         },
         ..default()
     });
@@ -451,6 +454,7 @@ enum TriggerType {
 #[derive(Component, Default)]
 struct TriggerComponent {
     id: TriggerType,
+    delete_on_trigger: bool,
 }
 
 #[derive(Bundle)]
@@ -473,6 +477,7 @@ impl Default for WorldTrigger {
             active_events: ActiveEvents::COLLISION_EVENTS,
             trigger: TriggerComponent {
                 id: TriggerType::None,
+                delete_on_trigger: true,
             },
         }
     }
@@ -502,7 +507,9 @@ fn check_triggers(
                     trigger_type: trigger.id,
                     message: (),
                 });
-                commands.entity(entity).despawn();
+                if trigger.delete_on_trigger {
+                    commands.entity(entity).despawn();
+                }
             }
         }
     }
@@ -873,7 +880,7 @@ struct AnimationConfig {
     frame_timer: Timer,
 }
 
-fn trigger_animation<S: Component>(mut animation: Single<&mut AnimationConfig, With<S>>) {
+fn trigger_animation(mut animation: Single<&mut AnimationConfig, With<Player>>) {
     // we create a new timer when the animation is triggered
     animation.frame_timer = AnimationConfig::timer_from_fps(animation.fps);
 }

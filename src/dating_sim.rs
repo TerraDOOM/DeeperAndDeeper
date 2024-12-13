@@ -232,7 +232,7 @@ fn on_dating_sim(
     commands.spawn(Camera2d);
 
     commands.spawn((
-        AudioPlayer::new(asset_server.load("sounds/hev charger drip car.mp3")),
+        AudioPlayer::new(asset_server.load("Music/hev charger drip car.ogg")),
         MyOST,
     ));
 

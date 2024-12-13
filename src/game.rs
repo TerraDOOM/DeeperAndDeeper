@@ -626,11 +626,14 @@ impl Default for WorldTrigger {
 fn on_pickup(
     mut reader: EventReader<WorldTriggerEvent>,
     mut context: ResMut<dating_sim::DatingContext>,
+    mut commands: Commands,
+    server: Res<AssetServer>,
 ) {
     for event in reader.read() {
         if event.trigger_type != TriggerType::ItemPickup {
             continue;
         } else {
+            commands.spawn(AudioPlayer::new(server.load("sounds/Pickup.ogg")));
             if let Some(key) = &event.flag {
                 let flag = context.flags.entry(key.clone()).or_insert(0);
                 *flag += 1;

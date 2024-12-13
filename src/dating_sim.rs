@@ -255,7 +255,11 @@ fn on_chill(
     let size = width / 9.0;
 
     commands.spawn((
-        Sprite::from_color(Color::srgb(0.75, 0.2, 0.2), Vec2::new(size, size)),
+        Sprite {
+            custom_size: Some(Vec2::new(size, size)),
+            image: asset_server.load("Icons/ExitShip_Icon.png"),
+            ..Default::default()
+        },
         Transform::from_translation(Vec2::new(0.0, -height / 3.0).extend(0.0)),
         Portrait,
         DatingObj,
@@ -379,69 +383,78 @@ fn start_talking(
         ..default()
     };
 
-    let talk_size = Vec2::new(width / 1.6, height / 5.0);
+    let talk_size = Vec2::new(width / 1.3, height / 3.0);
     let talk_position = Vec2::new(width / 8.0, -height / 2.5);
 
-    let dialogue = context.selected_scene.text[0].1.clone();
-    let person = context.selected_scene.text[0].0;
-    commands
-        .spawn((
-            Sprite::from_color(Color::srgb(0.20, 0.3, 0.70), talk_size),
-            Transform::from_translation(talk_position.extend(1.0)),
-            TalkObj,
-        ))
-        .with_children(|builder| {
-            builder.spawn((
-                Text2d::new(dialogue),
-                TextBox(0),
-                slightly_smaller_text_font.clone(),
-                TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
-                // Wrap text in the rectangle
-                TextBounds::from(talk_size * 0.85),
-                // ensure the text is drawn on top of the box
-                Transform::from_translation(Vec3::Z),
-            ));
-        });
-
-    //Who is talking
-    if let Some(real_preson) = person {
+    if (context.selected_scene.text.len() > 0) {
+        let dialogue = context.selected_scene.text[0].1.clone();
+        let person = context.selected_scene.text[0].0;
         commands
             .spawn((
-                Sprite::from_color(
-                    Color::srgb(0.20, 0.3, 0.70),
-                    Vec2::new(width / 4.0, height / 10.0),
-                ),
-                Transform::from_translation(
-                    (talk_position
-                        + Vec2::new(-talk_size.y / 2.0, talk_size.y / 2.0 + height / 20.0))
-                    .extend(1.0),
-                ),
+                Sprite {
+                    custom_size: Some(talk_size),
+                    image: asset_server.load("Textbox/Textbox.png"),
+                    ..Default::default()
+                },
+                Transform::from_translation(talk_position.extend(1.0)),
                 TalkObj,
             ))
             .with_children(|builder| {
                 builder.spawn((
-                    Text2d::new(format!("{:?}", real_preson)),
-                    NameBox,
+                    TextColor(Color::srgb(0.0, 0.0, 0.0)),
+                    Text2d::new(dialogue),
+                    TextBox(0),
                     slightly_smaller_text_font.clone(),
                     TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                     // Wrap text in the rectangle
-                    TextBounds::from(talk_size * 0.85),
+                    TextBounds::from(talk_size * 0.75),
                     // ensure the text is drawn on top of the box
                     Transform::from_translation(Vec3::Z),
                 ));
             });
 
-        //Look at sexy person talking
-        commands.spawn((
-            get_portrait(
-                real_preson,
-                Vec2::new(width / 2.0, width / 2.0),
-                &asset_server,
-            ),
-            Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
-            TalkObj,
-            Portrait,
-        ));
+        //Who is talking
+        if let Some(real_preson) = person {
+            commands
+                .spawn((
+                    Sprite {
+                        custom_size: Some(talk_size),
+                        image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
+                        ..Default::default()
+                    },
+                    Transform::from_translation(
+                        (talk_position
+                            + Vec2::new(talk_size.x / 2.0, talk_size.y / 2.0 + height / 20.0))
+                        .extend(1.0),
+                    ),
+                    TalkObj,
+                ))
+                .with_children(|builder| {
+                    builder.spawn((
+                        Text2d::new(format!("{:?}", real_preson)),
+                        TextColor(Color::srgb(0.0, 0.0, 0.0)),
+                        NameBox,
+                        slightly_smaller_text_font.clone(),
+                        TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
+                        // Wrap text in the rectangle
+                        TextBounds::from(talk_size * 0.75),
+                        // ensure the text is drawn on top of the box
+                        Transform::from_translation(Vec3::Z),
+                    ));
+                });
+
+            //Look at sexy person talking
+            commands.spawn((
+                get_portrait(
+                    real_preson,
+                    Vec2::new(width / 2.0, width / 2.0),
+                    &asset_server,
+                ),
+                Transform::from_translation(Vec2::new(-width / 4.0, -height / 10.0).extend(-0.5)),
+                TalkObj,
+                Portrait,
+            ));
+        }
     }
 }
 
@@ -491,6 +504,7 @@ fn on_choosing(
                     TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                     TextBounds::from(option_size * 0.85),
                     Transform::from_translation(Vec3::Z),
+                    TextColor(Color::srgb(0.0, 0.0, 0.0)),
                 ));
             });
         commands
@@ -633,18 +647,19 @@ fn talking_action(
                     let window = windows.single();
                     let width = window.resolution.width();
                     let height = window.resolution.height();
-                    let talk_size = Vec2::new(width / 1.6, height / 5.0);
-                    let talk_position = Vec2::new(0.0, -height / 2.5);
+                    let talk_size = Vec2::new(width / 1.3, height / 3.0);
+                    let talk_position = Vec2::new(width / 8.0, -height / 2.5);
                     commands
                         .spawn((
-                            Sprite::from_color(
-                                Color::srgb(0.20, 0.3, 0.70),
-                                Vec2::new(width / 4.0, height / 10.0),
-                            ),
+                            Sprite {
+                                custom_size: Some(talk_size),
+                                image: asset_server.load("Textbox/Textbox-NameAddOn.png"),
+                                ..Default::default()
+                            },
                             Transform::from_translation(
                                 (talk_position
                                     + Vec2::new(
-                                        -talk_size.y / 2.0,
+                                        talk_size.x / 2.0,
                                         talk_size.y / 2.0 + height / 20.0,
                                     ))
                                 .extend(1.0),
@@ -653,18 +668,19 @@ fn talking_action(
                         ))
                         .with_children(|builder| {
                             builder.spawn((
+                                TextColor(Color::srgb(0.0, 0.0, 0.0)),
                                 Text2d::new(format!("{:?}", new_person)),
                                 NameBox,
                                 slightly_smaller_text_font.clone(),
                                 TextLayout::new(JustifyText::Left, LineBreak::WordBoundary),
                                 // Wrap text in the rectangle
-                                TextBounds::from(talk_size * 0.85),
+                                TextBounds::from(talk_size * 0.75),
                                 // ensure the text is drawn on top of the box
                                 Transform::from_translation(Vec3::Z),
                             ));
                         });
 
-                    //Look at secy person talking
+                    //Look at sexy person talking
                     commands.spawn((
                         get_portrait(
                             new_person,
@@ -695,9 +711,24 @@ fn talking_action(
                         //                            flags: HashMap<String, isize>,
                         if let Some(flag_name) = branch.0.0 {
                             if context.flags.contains_key(&flag_name)
-                                && (context.flags[&flag_name] >= branch.0.1
-                                    || (context.flags[&flag_name] < 0
-                                        && context.flags[&flag_name] <= branch.0.1))
+                                && context.flags[&flag_name] >= branch.0.1
+                            {
+                                //We fulfil the condition and move on
+                                if branch.1.to_lowercase() == "return" {
+                                    tmp.set(DatingState::Chilling);
+                                    break 'outer;
+                                }
+                                for scene in context.scenes.clone() {
+                                    if scene.id == branch.1 {
+                                        dbg!(context.selected_scene = scene);
+                                        (textbox).0 = 0;
+                                        break 'outer;
+                                    };
+                                }
+                            } else if (branch.0.1 < 0 && !context.flags.contains_key(&flag_name))
+                                || (branch.0.1 < 0
+                                    && context.flags.contains_key(&flag_name)
+                                    && context.flags[&flag_name] >= branch.0.1.abs())
                             {
                                 //We fulfil the condition and move on
                                 if branch.1.to_lowercase() == "return" {

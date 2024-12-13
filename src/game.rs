@@ -119,6 +119,7 @@ impl ExplorationMap {
         match tile {
             Tile::Rock => self.sprites.rock.clone(),
             Tile::Error => self.sprites.error.clone(),
+            Tile::Wall => self.sprites.backdrop.clone(),
             _ => self.sprites.nothing.clone(),
         }
     }
@@ -127,8 +128,15 @@ impl ExplorationMap {
 struct TileSprites {
     rock: Sprite,
     nothing: Sprite,
+    backdrop: Sprite,
+    sodium: Sprite,
+    calcium: Sprite,
+    coal: Sprite,
     iron: Sprite,
-
+    potassium: Sprite,
+    sulfur: Sprite,
+    oil: Sprite,
+    //    iron: Sprite,
     error: Sprite,
 }
 
@@ -184,7 +192,8 @@ impl AssetLoader for MapLoader {
 
 fn tile_from_color(color: [u8; 4]) -> Tile {
     match (u32::from_be_bytes(color) & 0xFFFFFF00) >> 8 {
-        0xFF_FF_FF | 0x30_30_30 => Tile::Air,
+        0xFF_FF_FF => Tile::Air,
+        0x30_30_30 => Tile::Wall,
         0xFD_DD_00 => Tile::Rock,
         0x55_cc_ee => Tile::Ice,
         0x00_00_FF => Tile::Oil,
@@ -205,10 +214,25 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     };
 
     const SPRITE_SIZE: Vec2 = Vec2::new(16.0, 16.0);
-    const ROCK: Vec2 = Vec2::new(96.0, 48.0);
+    const ROCK: Vec2 = Vec2::new(16.0, 16.0);
+    const BACKDROP: Vec2 = Vec2::new(96.0, 48.0);
 
     let sprites = TileSprites {
         rock: make_sprite("Map/tileset_deeper_and_deeper.png", ROCK),
+        backdrop: make_sprite("Map/tileset_deeper_and_deeper.png", BACKDROP),
+        sodium: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(144.0, 0.0)),
+        calcium: make_sprite(
+            "Map/tileset_deeper_and_deeper.png",
+            Vec2::new(144.0 + 16.0, 0.0),
+        ),
+        coal: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(144.0, 16.0)),
+        iron: make_sprite(
+            "Map/tileset_deeper_and_deeper.png",
+            Vec2::new(144.0 + 46.0, 0.0),
+        ),
+        potassium: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(160.0, 16.0)),
+        sulfur: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(176.0, 0.0)),
+        oil: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(176.0, 16.0)),
         nothing: Sprite {
             color: Color::rgba(0.0, 0.0, 0.0, 0.0),
             custom_size: Some(Vec2::new(100.0, 100.0)),
@@ -240,6 +264,7 @@ pub enum Tile {
     Oil,
     Iron,
     Air,
+    Wall,
 }
 
 impl Tile {
@@ -247,7 +272,7 @@ impl Tile {
         use Tile as T;
         match self {
             T::Error | T::Rock | T::Ice | T::Oil | T::Iron => true,
-            T::Air => false,
+            T::Air | T::Wall => false,
         }
     }
 }
@@ -276,7 +301,7 @@ pub fn spawn_player(
                 ..Default::default()
             },
             RigidBody::KinematicPositionBased,
-            TransformBundle::from(Transform::from_xyz(200.0, -7000.0, 0.0)),
+            TransformBundle::from(Transform::from_xyz(6800.0, -7500.0, 0.0)),
             Collider::ball(sprite_size / 2.),
             Player {
                 grounded: false,
@@ -305,7 +330,7 @@ pub fn spawn_player(
                 custom_size: Some(Vec2::new(sprite_size, sprite_size)),
                 ..Default::default()
             },
-            transform: Transform::from_xyz(600.0, -7000.0, 0.0),
+            transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
             ..Default::default()
         },
         collider: Collider::ball(50.0),
@@ -456,7 +481,7 @@ fn player_movement(
         }
 
         if !player.grounded {
-            player.velocity += Vec2::new(0.0, -250.0) * time.delta_secs();
+            player.velocity += Vec2::new(0.0, -200.0) * time.delta_secs();
             let drag = player.velocity * 0.02;
             player.velocity -= drag;
         }

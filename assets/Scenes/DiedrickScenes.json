@@ -3,15 +3,15 @@
       "id": "DiedrickInit",
       "text": [],
       "scene": [
-            [["LivDead", 1], "DiedrickRebuff"], 
-            [["FredrickDead", 1], "DiedrickRebuff"], 
-            [["CarleStoppedSmoking", 1], "DiedrickFinished"], 
-            [["TalkedAboutSmokingWithDiedrick", 1], "DiedrickSmokingAdviceAlone"], 
-            [["AutoDocResupplied", 1], "DiedrickSmokingAdvice"], 
-            [["DiedrickThanked", 1], "DiedrickSecondQuest"], 
-            [["AutoDocFixed", 1], "DiedrickAutoDocThanks"], 
-            [["Evening", 1], "DiedrickAutodocScene"],
-            [[null, 0], "DiedrickFirstQuest"]
+            [[["LivDead", 1]], "DiedrickRebuff"], 
+            [[["FredrickDead", 1]], "DiedrickRebuff"], 
+            [[["CarleStoppedSmoking", 1]], "DiedrickFinished"], 
+            [[["TalkedAboutSmokingWithDiedrick", 1]], "DiedrickSmokingAdviceAlone"], 
+            [[["AutoDocResupplied", 1]], "DiedrickSmokingAdvice"], 
+            [[["DiedrickThanked", 1]], "DiedrickSecondQuest"], 
+            [[["AutoDocFixed", 1]], "DiedrickAutoDocThanks"], 
+            [[["Evening", 1]], "DiedrickAutodocScene"],
+            [[[null, 0]], "DiedrickFirstQuest"]
         ]
     },
     {

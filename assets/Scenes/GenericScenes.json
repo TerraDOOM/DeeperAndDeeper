@@ -32,7 +32,7 @@
         [null, "The crew starts filtering out of the room, out into the living quarters."],
         ["Liv", "...Thanks."]
       ],
-      "choice": [["one hour later...", "TakeStockDay1"], ["KILL YOURSELF", "return"]]
+      "scene": [[[[null, 0]], "TakeStockDay1"]]
     },
     { 
       "id": "TakeStockDay1",
@@ -275,13 +275,13 @@
         ["You", "And you as well."]
       ],
       "outcome": [["GreenhouseFixed", 1], ["Day", 1], ["Evening", -1]],
-        "scene": [[[null, 0], "return"]]
+        "scene": [[[[null, 0]], "return"]]
     },
     { 
       "id": "Day1Scan",
       "text": [[null, "This should tell you where the important objectives are."]],
       "outcome": [["PerformedScan", 1], ["Day", 1], ["Evening", -1]],
-      "scene": [[[null, 0], "return"]]
+      "scene": [[[[null, 0]], "return"]]
     },
     { 
       "id": "Day1AirFixed",
@@ -313,7 +313,7 @@
         ["You", "Right."]
       ],
       "outcome": [["FiltrationFixed", 1], ["Day", 1], ["Evening", -1]],
-      "scene": [[[null, 0], "return"]]
+      "scene": [[[[null, 0]], "return"]]
     },
     { 
       "id": "Day1AutoDoc",
@@ -333,7 +333,7 @@
         ["You", "...Touché."]
       ],
       "outcome": [["AutoDocFixed", 1], ["Day", 1], ["Evening", -1]],
-        "scene": [[[null, 0], "return"]]
+        "scene": [[[[null, 0]], "return"]]
     },
     { 
       "id": "Day2Morning",
@@ -352,9 +352,9 @@
         [null, "Liv leads you out of your sleeping quarters."]
     ],
       "scene": [
-        [["GreenhouseFixed", 1], "NickOfTime"],
-        [["EarlyGreenhouse", 1], "WastedPotential"],
-        [[null, 0], "LostFood"]
+        [[["GreenhouseFixed", 1]], "NickOfTime"],
+        [[["EarlyGreenhouse", 1]], "WastedPotential"],
+        [[[null, 0]], "LostFood"]
       ]
     },
     { 
@@ -404,9 +404,9 @@
         ["You", "More on-topic, please."]
     ],
     "scene": [
-        [["FiltrationFixed", 1], "Day1TiradeMinusLiv"],
-        [["AutoDocFixed", 1], "Day1TiradeMinusDiedrick"],
-        [["PerformedScan", 1], "Day1TiradeMinusFredrick"]
+        [[["FiltrationFixed", 1]], "Day1TiradeMinusLiv"],
+        [[["AutoDocFixed", 1]], "Day1TiradeMinusDiedrick"],
+        [[["PerformedScan", 1]], "Day1TiradeMinusFredrick"]
     ]
     },
     { 
@@ -420,9 +420,9 @@
         ["You", "More on-topic, please."]
     ],
     "scene": [
-        [["FiltrationFixed", 1], "Day1TiradeMinusLiv"],
-        [["AutoDocFixed", 1], "Day1TiradeMinusDiedrick"],
-        [["PerformedScan", 1], "Day1TiradeMinusFredrick"]
+        [[["FiltrationFixed", 1]], "Day1TiradeMinusLiv"],
+        [[["AutoDocFixed", 1]], "Day1TiradeMinusDiedrick"],
+        [[["PerformedScan", 1]], "Day1TiradeMinusFredrick"]
     ]
     },
     { 

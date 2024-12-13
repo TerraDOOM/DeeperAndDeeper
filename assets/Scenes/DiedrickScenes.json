@@ -1,9 +1,129 @@
 [
     { 
       "id": "DiedrickInit",
-      "text": [
-        ["Diedrick", "We should definitely have a party."],
-        ["You", "No bro."]
-      ]
+      "text": [],
+      "scene": [
+            [["LivDead", 1], "DiedrickRebuff"], 
+            [["FredrickDead", 1], "DiedrickRebuff"], 
+            [["CarleStoppedSmoking", 1], "DiedrickFinished"], 
+            [["TalkedAboutSmokingWithDiedrick", 1], "DiedrickSmokingAdviceAlone"], 
+            [["AutoDocResupplied", 1], ["Days", 3], "DiedrickSmokingAdvice"], 
+            [["DiedrickThanked", 1], "DiedrickSecondQuest"], 
+            [["AutoDocFixed", 1], "DiedrickAutoDocThanks"], 
+            [[null, 0], "DiedrickFirstQuest"]
+        ]
+    },
+    {
+        "id": "DiedrickRebuff",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "No."],
+            ["You", "Oh."]
+        ]
+    },
+    {
+        "id": "DiedrickFinished",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "Anything on your mind?"],
+            ["Diedrick", "Nah. My worries have all been put to rest. Maybe help the others?"],
+            ["You", "Well, well, well, look at how generous you got all of a sudden."],
+            ["Diedrick", "Give me some credit. I'm a doctor, I'll tell you if there's an issue."],
+            ["You", "Right."],
+            ["Diedrick", "If I say things are fine, they really are."],
+            ["You", "No, I got it. I'll let you get back to your helping self."],
+            ["Diedrick", "What comes around goes around, captain!"]
+        ]
+    },
+    {
+        "id": "DiedrickFirstQuest",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "Anything on your mind?"],
+            ["Diedrick", "Honestly?"],
+            [null, "He pauses for a second."],
+            ["Diedrick", "I'm worried about Carle."],
+            ["You", "How so?"],
+            ["Diedrick", "His injury?"],
+            ["You", "I thought that was years old at this point."],
+            ["Diedrick", "It flares every once in a while. I don't think he likes thinking about it."],
+            ["You", "Ahh... can't the autodoc fix it?"],
+            ["Diedrick", "It's broken right now. I'm working on it, but I'll need help, and everyone's busy."],
+            ["You", "Gotcha. Well, maybe after the excursion."],
+            ["Diedrick", "I eagerly await it."]
+        ],
+        "outcome": [["TalkedToDiedrickAboutAutodoc", 1]]
+    },
+    {
+        "id": "DiedrickAutodocThanks",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "How are things?"],
+            ["Diedrick", "Good! Definitely good."],
+            ["Diedrick", "Big thanks for helping me fixing the autodoc, too."],
+            ["You", "I'm just doing my job."],
+            ["Diedrick", "Nonetheless!"],
+            ["Diedrick", "It helps."],
+            [null, "He smiles at you, positively beaming."],
+            ["Diedrick", "Though admittedly, there is a slight issue."],
+            ["You", "Oh?"],
+            ["Diedrick", "Yeah... the autodoc is apparently low on base materials."],
+            ["You", "Meaning...?"],
+            ["Diedrick", "Meaning it needs an infusion of sodium and calcium"],
+            ["You", "Where am I even supposed to get that?"],
+            ["Diedrick", "How should I know? I'm just a doctor."],
+            ["You", "Well... I'll get on that, I guess."],
+            ["Diedrick", "Great!"]
+        ],
+        "outcome": [["DiedrickThanked", 1]]
+    },
+    {
+        "id": "DiedrickSecondQuest",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "Anything on your mind?"],
+            ["Diedrick", "Good! Definitely good."],
+            ["Diedrick", "Still need the sodium and calcium, though."],
+            ["You", "Where am I even supposed to get that?"],
+            ["Diedrick", "How should I know? I'm just a doctor."],
+            ["You", "Well... I'll get on that, I guess."],
+            ["Diedrick", "Great!"]
+        ]
+    },
+    {
+        "id": "DiedrickSmokingAdvice",
+        "text": [
+            ["You", "Diedrick?"],
+            [null, "Diedrick looks away from a conversation he was having with Liv."],
+            ["Diedrick", "Yeah?"],
+            ["You", "Anything on your mind?"],
+            ["Diedrick", "Actually, we were just speaking about it."],
+            ["You", "Oh?"],
+            [null, "Diedrick hesitates, an unusual action for him."],
+            ["Liv", "I'm not sure it's our place to talk about."],
+            ["Diedrick", "To hell with that. Carle needs to stop smoking."],
+            ["Liv", "It's a pain thing, Diedrick..."],
+            ["Diedrick", "Like I don't know? For you, it's a life thing!"],
+            ["Liv", "Can't I just be in a different room?"],
+            ["You", "I'm not sure our filters can handle that, frankly."],
+            ["Diedrick", "Also, you shouldn't need to do that."],
+            [null, "There's a pause as Liv uncomfortably looks away from the two of you."],
+            ["Liv", "I gotta go, I think."]
+        ],
+        "outcome": [["TalkedAboutSmokingWithDiedrick", 1]]
+    },
+    {
+        "id": "DiedrickSmokingAdviceAlone",
+        "text": [
+            ["You", "Diedrick?"],
+            ["Diedrick", "Yeah?"],
+            ["You", "Anything on your mind?"],
+            ["Diedrick", "Still the smoking thing, captain."],
+            ["You", "Right."]
+        ]
     }
 ]

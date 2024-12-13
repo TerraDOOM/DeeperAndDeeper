@@ -346,7 +346,8 @@ fn spawn_player(
         BackgroundExplore,
     ));
 
-    commands.spawn(AudioPlayer::new(server.load(pick_ost(1))));
+    let random_number = rng.rng.gen_range(0..5);
+    commands.spawn(AudioPlayer::new(server.load(pick_ost(random_number))));
 
     let texture = server.load("Sprite/Player_Walking_Sprite-Sheet.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px

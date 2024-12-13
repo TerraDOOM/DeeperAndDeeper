@@ -211,6 +211,7 @@ fn on_dating_sim(
     mut commands: Commands,
     mut tmp: ResMut<NextState<DatingState>>,
     context: ResMut<DatingContext>,
+    asset_server: Res<AssetServer>,
     camera: Single<
         Entity,
         (
@@ -229,8 +230,16 @@ fn on_dating_sim(
     commands.entity(entity).despawn();
     commands.spawn(Camera2d);
 
+    commands.spawn((
+        AudioPlayer::new(asset_server.load("sounds/hev charger drip car.mp3")),
+        MyOST,
+    ));
+
     tmp.set(DatingState::Chilling);
 }
+
+#[derive(Component)]
+struct MyOST;
 
 fn on_chill(
     mut commands: Commands,

@@ -250,10 +250,11 @@ struct Background;
 
 fn on_chill(
     mut commands: Commands,
-    context: ResMut<DatingContext>,
+    mut context: ResMut<DatingContext>,
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
     background: Option<Single<&mut Sprite, With<Background>>>,
+    mut tmp: ResMut<NextState<DatingState>>,
 ) {
     let window = windows.single();
     let width = window.resolution.width();
@@ -362,6 +363,102 @@ fn on_chill(
     }
 
     let text_justification = JustifyText::Center;
+
+    macro_rules! find_scene {
+        ($scene:literal) => {
+            context.scenes
+                    .iter()
+                    .find(|s: &&DatingScene| s.id == $scene)
+                    .cloned()
+                    .unwrap();
+        };
+    }
+    
+    if true {
+        let mut scene: DatingScene;
+
+        if context.flags.get("Evening") == Some(&0) {
+            match context.flags.get("Day") {
+                Some(2) => {
+                    if context.flags.get("Day2Played") != Some(&1) {
+                        context.selected_scene = find_scene!("Day2Morning");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(3) => {
+                    if context.flags.get("Day3Played") != Some(&1) {
+                        context.selected_scene = find_scene!("Day3Morning");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(4) => {
+                    if context.flags.get("Day4Played") != Some(&1) {
+                        context.selected_scene = find_scene!("Day4Morning");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(5) => {
+                    if context.flags.get("Day5Played") != Some(&1) {
+                        context.selected_scene = find_scene!("Day5Morning");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(6) => {
+                    if context.flags.get("Day6Played") != Some(&1) {
+                        context.selected_scene = find_scene!("Day6Morning");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(7) => {
+                    if context.flags.get("Day7Played") != Some(&1) {
+                        context.selected_scene = find_scene!("Day7Morning");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                _ => ()
+            }
+        } else {
+            match context.flags.get("Day") {
+                Some(1) => {
+                    if context.flags.get("Day1EveningPlayed") != Some(&1) {
+                        context.selected_scene = find_scene!("Day2Evening");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(2) => {
+                    if context.flags.get("Day2EveningPlayed") != Some(&1) {
+                        context.selected_scene = find_scene!("Day2Evening");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(3) => {
+                    if context.flags.get("Day3EveningPlayed") != Some(&1) {
+                        context.selected_scene = find_scene!("Day3Evening");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(4) => {
+                    if context.flags.get("Day4EveningPlayed") != Some(&1) {
+                        context.selected_scene = find_scene!("Day4Evening");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(5) => {
+                    if context.flags.get("Day5EveningPlayed") != Some(&1) {
+                        context.selected_scene = find_scene!("Day5Evening");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                Some(6) => {
+                    if context.flags.get("Day6EveningPlayed") != Some(&1) {
+                        context.selected_scene = find_scene!("Day6Evening");
+                        tmp.set(DatingState::Talking);
+                    }
+                }
+                _ => ()
+            }
+        }
+    }
 }
 
 fn get_portrait(

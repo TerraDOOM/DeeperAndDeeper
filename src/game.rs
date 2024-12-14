@@ -699,6 +699,19 @@ fn on_pickup(
     }
 }
 
+fn on_ship_return(
+    mut reader: EventReader<WorldTriggerEvent>,
+    mut context: ResMut<dating_sim::DatingContext>,
+    mut menu_state: ResMut<NextState<GameState>>,
+) {
+    for event in reader.read() {
+        if event.trigger_type == TriggerType::Ship {
+            context.flags.insert("Evening".to_owned(), 1);
+            menu_state.set(GameState::DatingSim);
+        }
+    }
+}
+
 fn check_triggers(
     mut commands: Commands,
     mut reader: EventReader<CollisionEvent>,
@@ -972,6 +985,7 @@ fn time_pressure(
     objective: ResMut<Objectives>,
     mut writer: TextUiWriter,
     mut menu_state: ResMut<NextState<GameState>>,
+    mut dating_context: ResMut<dating_sim::DatingContext>,
 ) {
     let mut t = time.elapsed().as_secs_f64() - objective.load_time;
 
@@ -982,6 +996,7 @@ fn time_pressure(
             if t < -5.0 {
                 println!("You have run out of oxygen");
                 menu_state.set(GameState::DatingSim);
+                dating_context.flags.insert("Evening".to_owned(), 1);
             }
 
             for entity in &query {

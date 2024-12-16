@@ -50,6 +50,17 @@ pub struct DatingContext {
     scenes: Vec<DatingScene>,
 }
 
+impl DatingContext {
+    pub fn set_scene(&mut self, scene: &str) -> bool {
+        if let Some(&next) = self.scenes.iter().find(|s| s.id == scene).as_ref() {
+            self.selected_scene = next.clone();
+            true
+        } else {
+            false
+        }
+    }
+}
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum DatingState {
     #[default]
@@ -228,12 +239,7 @@ fn on_dating_sim(
         DatingObj,
     ));
     if !*did_init {
-        context.selected_scene = context
-            .scenes
-            .iter()
-            .find(|s: &&DatingScene| s.id == "Day1Morning")
-            .cloned()
-            .unwrap();
+        context.set_scene("Day1Morning");
         *did_init = true;
         tmp.set(DatingState::Talking);
     } else {
@@ -363,99 +369,19 @@ fn on_chill(
 
     let text_justification = JustifyText::Center;
 
-    macro_rules! find_scene {
-        ($scene:literal) => {
-            context
-                .scenes
-                .iter()
-                .find(|s: &&DatingScene| s.id == $scene)
-                .cloned()
-                .unwrap()
-        };
-    }
+    let mut scene: DatingScene;
 
-    if true {
-        let mut scene: DatingScene;
+    if context.flags.get("Evening") == Some(&0) {
+        let day = context.flags.get("Day");
 
-        if context.flags.get("Evening") == Some(&0) {
-            match context.flags.get("Day") {
-                Some(2) => {
-                    if context.flags.get("Day2Played") != Some(&1) {
-                        context.selected_scene = find_scene!("Day2Morning");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(3) => {
-                    if context.flags.get("Day3Played") != Some(&1) {
-                        context.selected_scene = find_scene!("Day3Morning");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(4) => {
-                    if context.flags.get("Day4Played") != Some(&1) {
-                        context.selected_scene = find_scene!("Day4Morning");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(5) => {
-                    if context.flags.get("Day5Played") != Some(&1) {
-                        context.selected_scene = find_scene!("Day5Morning");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(6) => {
-                    if context.flags.get("Day6Played") != Some(&1) {
-                        context.selected_scene = find_scene!("Day6Morning");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(7) => {
-                    if context.flags.get("Day7Played") != Some(&1) {
-                        context.selected_scene = find_scene!("Day7Morning");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                _ => (),
-            }
-        } else {
-            match context.flags.get("Day") {
-                Some(1) => {
-                    if context.flags.get("Day1EveningPlayed") != Some(&1) {
-                        context.selected_scene = find_scene!("Day2Evening");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(2) => {
-                    if context.flags.get("Day2EveningPlayed") != Some(&1) {
-                        context.selected_scene = find_scene!("Day2Evening");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(3) => {
-                    if context.flags.get("Day3EveningPlayed") != Some(&1) {
-                        context.selected_scene = find_scene!("Day3Evening");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(4) => {
-                    if context.flags.get("Day4EveningPlayed") != Some(&1) {
-                        context.selected_scene = find_scene!("Day4Evening");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(5) => {
-                    if context.flags.get("Day5EveningPlayed") != Some(&1) {
-                        context.selected_scene = find_scene!("Day5Evening");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                Some(6) => {
-                    if context.flags.get("Day6EveningPlayed") != Some(&1) {
-                        context.selected_scene = find_scene!("Day6Evening");
-                        tmp.set(DatingState::Talking);
-                    }
-                }
-                _ => (),
+        if let Some(day @ 2..=7) = day {
+            let played = format!("Day{day}Played");
+            let scene = format!("Day{day}Morning");
+
+            // if DayNPlayed == 1, set scene to DayNMorning
+            if context.flags.get(&played) != Some(&1) {
+                context.set_scene(&scene);
+                tmp.set(DatingState::Talking);
             }
         }
     }

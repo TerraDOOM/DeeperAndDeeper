@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 
 use super::Tile;
 
@@ -24,7 +24,7 @@ pub fn get_verts(region: &Region) -> Vec<(usize, usize)> {
 
     let is_solid = |p, dir| region.members.contains(&modify(p, dir));
 
-    let mut direction = (1, 0);
+    let direction = (1, 0);
 
     let add = |a: Point, b: Point| (a.0 + b.0, a.1 + b.1);
     let add_dir =

@@ -391,7 +391,7 @@ fn spawn_player(
         .spawn((
             player_sprite,
             RigidBody::KinematicPositionBased,
-            TransformBundle::from(Transform::from_xyz(6800.0, -7500.0, 0.0)),
+            Transform::from_xyz(6800.0, -7500.0, 0.0),
             Collider::ball(sprite_size / 2.4),
             Player {
                 grounded: false,
@@ -776,7 +776,7 @@ fn update_camera(
     >,
     player: Query<&Transform, (With<Player>, Without<Camera2d>, Without<BackgroundExplore>)>,
     time: Res<Time>,
-    mut background: Single<&mut Transform, (With<BackgroundExplore>)>,
+    mut background: Single<&mut Transform, With<BackgroundExplore>>,
 ) {
     let Ok(mut camera) = camera.get_single_mut() else {
         return;

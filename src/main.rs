@@ -5,7 +5,6 @@ use bevy::prelude::*;
 mod dating_sim;
 mod game;
 mod load;
-use image::{self, GenericImage, Rgba};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 enum GameState {

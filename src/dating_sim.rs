@@ -6,9 +6,8 @@
 use super::{despawn_screen, GameState};
 use crate::load;
 use bevy::{
-    math::ops,
     prelude::*,
-    text::{FontSmoothing, LineBreak, TextBounds},
+    text::{LineBreak, TextBounds},
     window::PrimaryWindow,
 };
 use serde::Deserialize;
@@ -527,7 +526,7 @@ struct EmptyScene;
 fn start_talking(
     mut commands: Commands,
     context: ResMut<DatingContext>,
-    mut query: Query<&mut Transform, With<Cursor>>,
+    query: Query<&mut Transform, With<Cursor>>,
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
@@ -630,7 +629,7 @@ fn start_talking(
 fn on_choosing(
     mut commands: Commands,
     mut context: ResMut<DatingContext>,
-    mut query: Query<&mut Transform, With<Cursor>>,
+    query: Query<&mut Transform, With<Cursor>>,
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
@@ -689,7 +688,7 @@ fn on_choosing(
 fn choose_move(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut ChoiceObj, With<ChoiceObj>>,
+    query: Query<&mut ChoiceObj, With<ChoiceObj>>,
     mut cursor_query: Query<&mut Transform, With<Cursor>>,
     mut context: ResMut<DatingContext>,
     mut tmp: ResMut<NextState<DatingState>>,

@@ -366,14 +366,15 @@ fn on_chill(
 
     macro_rules! find_scene {
         ($scene:literal) => {
-            context.scenes
-                    .iter()
-                    .find(|s: &&DatingScene| s.id == $scene)
-                    .cloned()
-                    .unwrap();
+            context
+                .scenes
+                .iter()
+                .find(|s: &&DatingScene| s.id == $scene)
+                .cloned()
+                .unwrap()
         };
     }
-    
+
     if true {
         let mut scene: DatingScene;
 
@@ -415,7 +416,7 @@ fn on_chill(
                         tmp.set(DatingState::Talking);
                     }
                 }
-                _ => ()
+                _ => (),
             }
         } else {
             match context.flags.get("Day") {
@@ -455,7 +456,7 @@ fn on_chill(
                         tmp.set(DatingState::Talking);
                     }
                 }
-                _ => ()
+                _ => (),
             }
         }
     }

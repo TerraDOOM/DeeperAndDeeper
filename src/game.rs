@@ -5,7 +5,6 @@ use bevy::{
 use bevy::{
     color::palettes::css::*,
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    input::common_conditions::input_just_pressed,
     ui::widget::TextUiWriter,
 };
 use bevy_rapier2d::{prelude::*, rapier::geometry::CollisionEventFlags};
@@ -36,7 +35,6 @@ impl Default for Random {
 }
 
 pub fn game_plugin(app: &mut App) {
-    use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
     let obj = Objectives {
@@ -57,11 +55,14 @@ pub fn game_plugin(app: &mut App) {
         .add_systems(
             OnEnter(GameState::Explore),
             (
-                spawn_player,
-                start_exploration,
-                spawn_ui,
-                debugging_info,
                 create_spaceship,
+                spawn_diagnostics_ui,
+                play_music,
+                spawn_map,
+                spawn_player,
+                spawn_triggers,
+                spawn_ui,
+                start_exploration,
             ),
         )
         .add_systems(
@@ -69,8 +70,7 @@ pub fn game_plugin(app: &mut App) {
             (
                 player_movement,
                 update_camera,
-                read_character_controller_collisions,
-                change_text_system,
+                update_diagnostics,
                 on_pickup,
                 time_pressure,
                 execute_animations,
@@ -79,7 +79,8 @@ pub fn game_plugin(app: &mut App) {
         )
         .add_systems(
             PostUpdate,
-            check_triggers.run_if(in_state(GameState::Explore)),
+            (check_triggers, read_character_controller_collisions)
+                .run_if(in_state(GameState::Explore)),
         )
         .insert_resource(Events::<WorldTriggerEvent>::default())
         .add_systems(OnExit(GameState::Explore), despawn_screen::<OnExploration>);
@@ -248,12 +249,12 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
         sulfur: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(176.0, 0.0)),
         oil: make_sprite("Map/tileset_deeper_and_deeper.png", Vec2::new(176.0, 16.0)),
         nothing: Sprite {
-            color: Color::rgba(0.0, 0.0, 0.0, 0.0),
+            color: Color::srgba(0.0, 0.0, 0.0, 0.0),
             custom_size: Some(Vec2::new(100.0, 100.0)),
             ..Default::default()
         },
         error: Sprite {
-            color: Color::rgb(1.0, 1.0, 0.0),
+            color: Color::srgb(1.0, 1.0, 0.0),
             custom_size: Some(Vec2::new(100.0, 100.0)),
             ..Default::default()
         },
@@ -309,30 +310,13 @@ fn pick_ost(index: usize) -> String {
     path
 }
 
-fn spawn_player(
+fn spawn_background(
     mut commands: Commands,
-    mut rng: ResMut<Random>,
-    server: Res<AssetServer>,
-    map: Res<ExplorationMap>,
-    maps: Res<Assets<MapAsset>>,
-    mut rapier_config: Query<&mut RapierConfiguration>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    server: Res<AssetServer>,
     bg: Option<Single<Entity, (With<Transform>, With<BackgroundExplore>)>>,
     windows: Query<&mut Window>,
 ) {
-    log::info!("spawning player");
-
-    let mut rapier_config = rapier_config.single_mut();
-    // Set gravity to 0.0 and spawn camera.
-    rapier_config.gravity = Vec2::ZERO;
-
-    let sprite_size = 100.0;
-
-    // commands.spawn((
-    //     AudioPlayer::new(server.load("sounds/hev charger drip car.mp3")),
-    //     OutsideOST,
-    // ));
-
     let width = windows.single().resolution.width();
     let height = windows.single().resolution.height();
 
@@ -362,32 +346,50 @@ fn spawn_player(
             BackgroundExplore,
         ));
     }
+}
 
+fn play_music(mut commands: Commands, mut rng: ResMut<Random>, server: Res<AssetServer>) {
     let random_number = rng.rng.gen_range(0..5);
     commands.spawn((
         AudioPlayer::new(server.load(pick_ost(random_number))),
         OnExploration,
     ));
+}
 
+fn spawn_player(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+    mut rapier_config: Query<&mut RapierConfiguration>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    log::info!("spawning player");
+
+    let mut rapier_config = rapier_config.single_mut();
+    // Set gravity to 0.0 and spawn camera.
+    rapier_config.gravity = Vec2::ZERO;
+
+    let sprite_size = 100.0;
     let texture = server.load("Sprite/Player_Walking_Sprite-Sheet.png");
     // the sprite sheet has 7 sprites arranged in a row, and they are all 24px x 24px
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_config_1 = AnimationConfig::new(0, 0, 3, 10);
+    let player_animation_config = AnimationConfig::new(0, 0, 3, 10);
+
+    let player_sprite = Sprite {
+        custom_size: Some(Vec2::new(sprite_size, sprite_size)),
+        image: texture.clone(),
+        texture_atlas: Some(TextureAtlas {
+            layout: texture_atlas_layout.clone(),
+            index: player_animation_config.first_sprite_index,
+        }),
+        image_mode: SpriteImageMode::Auto,
+        ..Default::default()
+    };
 
     // player init
     commands
         .spawn((
-            Sprite {
-                custom_size: Some(Vec2::new(sprite_size, sprite_size)),
-                image: texture.clone(),
-                texture_atlas: Some(TextureAtlas {
-                    layout: texture_atlas_layout.clone(),
-                    index: animation_config_1.first_sprite_index,
-                }),
-                image_mode: SpriteImageMode::Auto,
-                ..Default::default()
-            },
+            player_sprite,
             RigidBody::KinematicPositionBased,
             TransformBundle::from(Transform::from_xyz(6800.0, -7500.0, 0.0)),
             Collider::ball(sprite_size / 2.4),
@@ -397,7 +399,7 @@ fn spawn_player(
                 velocity: Vec2::ZERO,
                 last_pos: Vec2::new(200.0, -7000.0),
             },
-            animation_config_1,
+            player_animation_config,
             OnExploration,
         ))
         .insert(KinematicCharacterController {
@@ -412,141 +414,15 @@ fn spawn_player(
         })
         .insert(ActiveCollisionTypes::KINEMATIC_STATIC);
 
-    //Place all triggers
-    {
-        let generous_trigger = Some(Vec2::new(500.0, 500.0));
-
-        //Greenhouse
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(26000.0, -3400.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            trigger: TriggerComponent {
-                id: TriggerType::ItemPickup,
-                delete_on_trigger: true,
-                flags: Some("GreenhouseFixed".to_string()),
-            },
-            ..default()
-        });
-
-        //coal TODO
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            trigger: TriggerComponent {
-                id: TriggerType::ItemPickup,
-                delete_on_trigger: true,
-                flags: Some("CoalCollected".to_string()),
-            },
-            ..default()
-        });
-        //sodium: Sprite TODO
-
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(47400.0, -20900.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            trigger: TriggerComponent {
-                id: TriggerType::ItemPickup,
-                delete_on_trigger: true,
-                flags: Some("SodiumCollected".to_string()),
-            },
-            ..default()
-        });
-
-        //calcium: Sprite TODO
-
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(42100.0, -13100.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            trigger: TriggerComponent {
-                id: TriggerType::ItemPickup,
-                delete_on_trigger: true,
-                flags: Some("CalciumCollected".to_string()),
-            },
-            ..default()
-        });
-        //sulfur
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(23100.0, -20100.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            trigger: TriggerComponent {
-                id: TriggerType::ItemPickup,
-                delete_on_trigger: true,
-                flags: Some("SulfurCollected".to_string()),
-            },
-            ..default()
-        });
-        //potassium TODO
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(3600.0, -7000.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            ..default()
-        });
-
-        //iron
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(274.0 * 100.0, -11600.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            ..default()
-        });
-
-        //oil
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            trigger: TriggerComponent {
-                id: TriggerType::ItemPickup,
-                delete_on_trigger: true,
-                flags: Some("OilCollected".to_string()),
-            },
-            collider: Collider::ball(250.0),
-            ..default()
-        });
-
-        //beacon TODO
-        commands.spawn(WorldTrigger {
-            transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
-            sprite: Sprite {
-                image: server.load("Sprite/SpaceBox_Sprite.png"),
-                custom_size: generous_trigger,
-                ..default()
-            },
-            ..default()
-        });
-    }
-
     // the second (right-hand) sprite runs at 20 FPS
+}
+
+fn spawn_map(
+    mut commands: Commands,
+    map: Res<ExplorationMap>,
+    maps: Res<Assets<MapAsset>>,
+    mut rng: ResMut<Random>,
+) {
     let MapAsset {
         ref tiles,
         floodfill: ref flood,
@@ -587,6 +463,103 @@ fn spawn_player(
     }
 
     commands.spawn_batch(sprites);
+}
+
+fn spawn_triggers(mut commands: Commands, server: Res<AssetServer>) {
+    //Place all triggers
+    let generous_trigger = Some(Vec2::new(500.0, 500.0));
+
+    let make_trigger = |x, y, sprite, flag: &str| WorldTrigger {
+        transform: Transform::from_xyz(x, y, 0.0),
+        sprite: Sprite {
+            image: server.load(sprite),
+            custom_size: generous_trigger,
+            ..default()
+        },
+        trigger: TriggerComponent {
+            id: TriggerType::ItemPickup,
+            delete_on_trigger: true,
+            flags: Some(flag.to_string()),
+        },
+        ..default()
+    };
+
+    commands.spawn(make_trigger(
+        26000.0,
+        -3400.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "GreenhouseFixed",
+    ));
+
+    //coal TODO
+    commands.spawn(make_trigger(
+        3600.0,
+        -7000.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "CoalCollected",
+    ));
+
+    //sodium: Sprite TODO
+    commands.spawn(make_trigger(
+        47400.0,
+        -20900.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "SodiumCollected",
+    ));
+
+    //calcium: Sprite TODO
+    commands.spawn(make_trigger(
+        42100.0,
+        -13100.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "CalciumCollected",
+    ));
+
+    //sulfur
+    commands.spawn(make_trigger(
+        23100.0,
+        -20100.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "SulfurCollected",
+    ));
+
+    //potassium TODO
+    commands.spawn(make_trigger(
+        3600.0,
+        -7000.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "PotassiumCollected",
+    ));
+
+    //iron
+    commands.spawn(make_trigger(
+        274.0 * 100.0,
+        -11600.0,
+        "Sprite/SpaceBox_Sprite.png",
+        "IronCollected",
+    ));
+
+    //oil
+    commands.spawn(WorldTrigger {
+        collider: Collider::ball(250.0),
+        ..make_trigger(
+            39.0 * 100.0,
+            -14100.0,
+            "Sprite/SpaceBox_Sprite.png",
+            "OilCollected",
+        )
+    });
+
+    //beacon TODO
+    commands.spawn(WorldTrigger {
+        transform: Transform::from_xyz(39.0 * 100.0, -14100.0, 0.0),
+        sprite: Sprite {
+            image: server.load("Sprite/SpaceBox_Sprite.png"),
+            custom_size: generous_trigger,
+            ..default()
+        },
+        ..default()
+    });
 }
 
 pub fn is_exposed_and_solid(tiles: &Vec<[Tile; 1000]>, x: usize, y: usize) -> bool {
@@ -919,7 +892,7 @@ fn spawn_ui(
     objective.load_time = time.elapsed().as_secs_f64();
 }
 
-fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
+fn spawn_diagnostics_ui(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     let root_uinode = commands
@@ -979,8 +952,6 @@ fn debugging_info(mut commands: Commands, asset_server: ResMut<AssetServer>) {
 
 fn time_pressure(
     time: Res<Time>,
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
     query: Query<Entity, With<TimerHud>>,
     objective: ResMut<Objectives>,
     mut writer: TextUiWriter,
@@ -988,29 +959,19 @@ fn time_pressure(
     mut dating_context: ResMut<dating_sim::DatingContext>,
 ) {
     let mut t = time.elapsed().as_secs_f64() - objective.load_time;
+    let entity = query.single();
 
     if let Some(timer) = objective.time_limit {
         t = (timer as f64) - t;
 
-        if t < 0.0 {
-            if t < -5.0 {
-                println!("You have run out of oxygen");
-                menu_state.set(GameState::DatingSim);
-                dating_context.flags.insert("Evening".to_owned(), 1);
-            }
-
-            for entity in &query {
-                let display_time = t;
-
-                *writer.text(entity, 1) = format!("You must return now!",);
-            }
+        if t < -5.0 {
+            println!("You have run out of oxygen");
+            menu_state.set(GameState::DatingSim);
+            dating_context.flags.insert("Evening".to_owned(), 1);
+        } else if t < 0.0 {
+            *writer.text(entity, 1) = format!("You must return now!",);
         } else {
-            for entity in &query {
-                let display_time = t;
-
-                *writer.text(entity, 0) = format!("Oxygen time: {display_time:.0}\n",);
-                //        *writer.text(entity, 1) = format!("You are fucked");
-            }
+            *writer.text(entity, 0) = format!("Oxygen time: {t:.0}\n",);
         }
     }
 }
@@ -1018,7 +979,7 @@ fn time_pressure(
 #[derive(Component)]
 struct TextChanges;
 
-fn change_text_system(
+fn update_diagnostics(
     mut fps_history: Local<VecDeque<f64>>,
     mut time_history: Local<VecDeque<Duration>>,
     time: Res<Time>,
@@ -1039,22 +1000,6 @@ fn change_text_system(
     let fps_variance = std_deviation(fps_history.make_contiguous()).unwrap_or_default();
 
     for entity in &query {
-        let mut fps = 0.0;
-        if let Some(fps_diagnostic) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
-            if let Some(fps_smoothed) = fps_diagnostic.smoothed() {
-                fps = fps_smoothed;
-            }
-        }
-
-        let mut frame_time = time.delta_secs_f64();
-        if let Some(frame_time_diagnostic) =
-            diagnostics.get(&FrameTimeDiagnosticsPlugin::FRAME_TIME)
-        {
-            if let Some(frame_time_smoothed) = frame_time_diagnostic.smoothed() {
-                frame_time = frame_time_smoothed;
-            }
-        }
-
         *writer.text(entity, 0) =
             format!("{avg_fps:.1} avg fps, {fps_variance:.1} frametime variance",);
         *writer.text(entity, 1) = format!(

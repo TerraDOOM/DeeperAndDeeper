@@ -34,6 +34,13 @@ impl Default for Random {
     }
 }
 
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum ExplorationState {
+    #[default]
+    Waiting,
+    Ready,
+}
+
 pub fn game_plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
@@ -51,19 +58,26 @@ pub fn game_plugin(app: &mut App) {
         .init_asset::<MapAsset>()
         .insert_resource(obj)
         .insert_resource(Random::default())
+        .init_state::<ExplorationState>()
         .add_systems(Startup, load_map)
+        .add_systems(
+            Update,
+            check_map_ready.run_if(in_state(ExplorationState::Waiting)),
+        )
+        .add_systems(OnEnter(ExplorationState::Ready), spawn_map)
         .add_systems(
             OnEnter(GameState::Explore),
             (
                 create_spaceship,
                 spawn_diagnostics_ui,
                 play_music,
-                spawn_map,
+                show_map,
+                spawn_background,
                 spawn_player,
                 spawn_triggers,
                 spawn_ui,
-                start_exploration,
-            ),
+            )
+                .run_if(in_state(ExplorationState::Ready)),
         )
         .add_systems(
             Update,
@@ -83,7 +97,10 @@ pub fn game_plugin(app: &mut App) {
                 .run_if(in_state(GameState::Explore)),
         )
         .insert_resource(Events::<WorldTriggerEvent>::default())
-        .add_systems(OnExit(GameState::Explore), despawn_screen::<OnExploration>);
+        .add_systems(
+            OnExit(GameState::Explore),
+            (despawn_screen::<OnExploration>, hide_map),
+        );
 }
 
 // The float value is the player movement speed in 'pixels/second'.
@@ -211,6 +228,20 @@ fn tile_from_color(color: [u8; 4]) -> Tile {
     }
 }
 
+fn check_map_ready(
+    mut ready_state: ResMut<NextState<ExplorationState>>,
+    mut asset_events: EventReader<AssetEvent<MapAsset>>,
+    map: ResMut<ExplorationMap>,
+) {
+    for ev in asset_events.read() {
+        if let AssetEvent::LoadedWithDependencies { id } = ev {
+            if *id == map.handle.id() {
+                ready_state.set(ExplorationState::Ready);
+            }
+        }
+    }
+}
+
 fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     let map: Handle<MapAsset> = asset_server.load("Map/map.png");
     let make_sprite = |image: &str, coord| Sprite {
@@ -267,8 +298,6 @@ fn load_map(mut commands: Commands, asset_server: ResMut<AssetServer>) {
 
 #[derive(Component)]
 struct TimerHud;
-
-pub fn start_exploration(commands: Commands) {}
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum Tile {
@@ -417,6 +446,9 @@ fn spawn_player(
     // the second (right-hand) sprite runs at 20 FPS
 }
 
+#[derive(Component)]
+struct TileMarker;
+
 fn spawn_map(
     mut commands: Commands,
     map: Res<ExplorationMap>,
@@ -437,11 +469,7 @@ fn spawn_map(
             .map(|(x, y)| Vec2::new(x as f32 * 100.0 as f32 - 50.0, y as f32 * -100.0 + 50.0))
             .collect::<Vec<Vec2>>();
 
-        commands.spawn((
-            RigidBody::Fixed,
-            Collider::polyline(vertices, None),
-            OnExploration,
-        ));
+        commands.spawn((RigidBody::Fixed, Collider::polyline(vertices, None)));
     }
 
     let mut sprites = Vec::with_capacity(1000 * 1000);
@@ -457,12 +485,25 @@ fn spawn_map(
                     flip_y: rng.rng.gen::<bool>(),
                     ..map.get_sprite(tiles[y][x])
                 },
-                OnExploration,
+                TileMarker,
+                Visibility::Hidden,
             ));
         }
     }
 
     commands.spawn_batch(sprites);
+}
+
+fn show_map(mut tiles: Query<&mut Visibility, With<TileMarker>>) {
+    for mut tile in &mut tiles {
+        *tile = Visibility::Visible;
+    }
+}
+
+fn hide_map(mut tiles: Query<&mut Visibility, With<TileMarker>>) {
+    for mut tile in &mut tiles {
+        *tile = Visibility::Hidden;
+    }
 }
 
 fn spawn_triggers(mut commands: Commands, server: Res<AssetServer>) {
@@ -896,12 +937,15 @@ fn spawn_diagnostics_ui(mut commands: Commands, asset_server: ResMut<AssetServer
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     let root_uinode = commands
-        .spawn(Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
-            justify_content: JustifyContent::SpaceBetween,
-            ..default()
-        })
+        .spawn((
+            Node {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::SpaceBetween,
+                ..default()
+            },
+            OnExploration,
+        ))
         .id();
 
     let right_column = commands

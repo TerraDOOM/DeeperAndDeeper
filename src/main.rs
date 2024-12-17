@@ -1,6 +1,11 @@
 #![allow(dead_code, unused_variables)]
 
-use bevy::prelude::*;
+use std::time::Duration;
+
+use bevy::{
+    prelude::*,
+    winit::{UpdateMode, WinitSettings},
+};
 
 mod dating_sim;
 mod game;
@@ -17,6 +22,7 @@ enum GameState {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .insert_resource(WinitSettings::desktop_app())
         .add_systems(Startup, setup)
         .add_plugins((
             menu::menu_plugin,
@@ -24,7 +30,19 @@ fn main() {
             dating_sim::dating_sim_plugin,
         ))
         .init_state::<GameState>()
+        .add_systems(OnEnter(GameState::DatingSim), set_winit_dating)
+        .add_systems(OnEnter(GameState::Explore), set_winit_explore)
         .run();
+}
+
+fn set_winit_dating(mut winit: ResMut<WinitSettings>) {
+    winit.focused_mode = UpdateMode::reactive_low_power(Duration::from_secs(1));
+    winit.unfocused_mode = UpdateMode::reactive_low_power(Duration::from_secs(1));
+}
+
+fn set_winit_explore(mut winit: ResMut<WinitSettings>) {
+    winit.focused_mode = UpdateMode::Continuous;
+    winit.unfocused_mode = UpdateMode::Continuous;
 }
 
 fn setup(
@@ -34,7 +52,7 @@ fn setup(
 ) {
     commands.spawn(Camera2d).insert(Transform::default());
     menu_state.set(GameState::DatingSim);
-    dating_state.set(dating_sim::DatingState::Chilling)
+    dating_state.set(dating_sim::DatingState::Chilling);
 }
 
 fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {

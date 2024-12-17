@@ -59,6 +59,10 @@ impl DatingContext {
             false
         }
     }
+
+    pub fn get_flag(&self, flag: &str) -> isize {
+        *self.flags.get(flag).unwrap_or(&0)
+    }
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
@@ -179,11 +183,18 @@ pub fn dating_sim_plugin(app: &mut App) {
     app.init_state::<DatingState>();
 
     //genereric
-    app.add_systems(OnEnter(GameState::DatingSim), on_dating_sim)
-        .add_systems(OnExit(GameState::DatingSim), despawn_screen::<DatingObj>);
+    app.add_systems(Startup, spawn_dating_bg)
+        .add_systems(
+            OnEnter(GameState::DatingSim),
+            (on_dating_sim, reset_camera, show_bg),
+        )
+        .add_systems(
+            OnExit(GameState::DatingSim),
+            (despawn_screen::<DatingObj>, hide_bg),
+        );
 
     //Chilling
-    app.add_systems(OnEnter(DatingState::Chilling), on_chill)
+    app.add_systems(OnEnter(DatingState::Chilling), (on_chill, reset_bg))
         .add_systems(
             Update,
             cursor_action.run_if(in_state(DatingState::Chilling)),
@@ -216,24 +227,7 @@ fn on_dating_sim(
     mut did_init: Local<bool>,
     mut context: ResMut<DatingContext>,
     asset_server: Res<AssetServer>,
-    camera: Single<
-        Entity,
-        (
-            With<Camera2d>,
-            With<Transform>,
-            Without<crate::game::Player>,
-        ),
-    >,
 ) {
-    //    let key = "day".to_string();
-    //    if let Some(flag) = context.flags.get_mut(&key) {
-    //        *flag += 1;
-    //    }
-    let entity = camera.into_inner();
-
-    commands.entity(entity).despawn();
-    commands.spawn(Camera2d).insert(Transform::default());
-
     commands.spawn((
         AudioPlayer::new(asset_server.load("Music/Music_InShip.ogg")),
         DatingObj,
@@ -247,18 +241,63 @@ fn on_dating_sim(
     }
 }
 
+fn reset_camera(mut commands: Commands, camera: Single<Entity, With<Camera2d>>) {
+    let entity = camera.into_inner();
+
+    commands.entity(entity).despawn();
+    commands.spawn(Camera2d).insert(Transform::default());
+}
+
 #[derive(Component)]
 struct MyOST;
 
 #[derive(Component)]
 struct Background;
 
+fn spawn_dating_bg(
+    mut commands: Commands,
+    windows: Query<&mut Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = windows.single();
+    let width = window.resolution.width();
+    let height = window.resolution.height();
+
+    let background_size = Some(Vec2::new(width, height));
+    let background_position = Vec2::new(0.0, 0.0);
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("Backgrounds/deeper_deeper_base.png"),
+            custom_size: background_size,
+            ..Default::default()
+        },
+        Transform::from_translation(background_position.extend(-1.0)),
+        Visibility::Hidden,
+        Background,
+    ));
+}
+
+fn show_bg(bg: Single<&mut Visibility, With<Background>>) {
+    let mut bg = bg.into_inner();
+    *bg = Visibility::Visible;
+}
+
+fn hide_bg(bg: Single<&mut Visibility, With<Background>>) {
+    let mut bg = bg.into_inner();
+    *bg = Visibility::Hidden;
+}
+
+fn reset_bg(mut commands: Commands, background: Option<Single<&mut Sprite, With<Background>>>) {
+    if let Some(mut background) = background.map(Single::into_inner) {
+        background.color = Color::srgba(1.0, 1.0, 1.0, 1.0);
+    }
+}
+
 fn on_chill(
     mut commands: Commands,
+    windows: Query<&mut Window, With<PrimaryWindow>>,
     mut context: ResMut<DatingContext>,
     asset_server: Res<AssetServer>,
-    windows: Query<&mut Window, With<PrimaryWindow>>,
-    background: Option<Single<&mut Sprite, With<Background>>>,
     mut tmp: ResMut<NextState<DatingState>>,
 ) {
     let window = windows.single();
@@ -279,24 +318,6 @@ fn on_chill(
     };
 
     //Cursor initialisation
-
-    if let Some(mut background) = background.map(Single::into_inner) {
-        background.color = Color::srgba(1.0, 1.0, 1.0, 1.0);
-    } else {
-        let background_size = Some(Vec2::new(width, height));
-        let background_position = Vec2::new(0.0, 0.0);
-        commands.spawn((
-            dbg!(Sprite {
-                image: asset_server.load("Backgrounds/deeper_deeper_base.png"),
-                custom_size: background_size,
-                ..Default::default()
-            }),
-            Transform::from_translation(background_position.extend(-1.0)),
-            Background,
-            DatingObj,
-        ));
-    }
-
     let cursor_size = Vec2::new(width / 8.0, width / 8.0);
     let cursor_position = Vec2::new(0.0, 250.0);
     let enc = commands.spawn((
@@ -328,16 +349,6 @@ fn on_chill(
             context.flags.clone(),
         );
         let box_position = Vec2::new((idx as f32 * size * 1.2) - width / 2.5, 250.0);
-        // if let Some(mission_var) = i.current_dialogue {
-        //     let box_size = Vec2::new(size / 1.5, size / 1.5);
-        //     let box_position = box_position + Vec2::new(0.0, -150.0);
-        //     let enc = commands.spawn((
-        //         Sprite::from_color(Color::srgb(0.75, 0.25, 0.25), box_size),
-        //         Transform::from_translation(box_position.extend(0.0)),
-        //         DatingObj,
-        //         MissionNot,
-        //     ));
-        // };
 
         let box_size = Vec2::new(size, size);
         commands
@@ -350,21 +361,6 @@ fn on_chill(
             .with_children(|builder| {
                 builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
             });
-
-        // if let death_flag = context.flags.contains_key(i.character); //
-        // if (death_flag < 0) {
-        //     //They are dead
-        //     let box_size = Vec2::new(size, size);
-        //     commands
-        //         .spawn((
-        //             Sprite::from_color(Color::srgb(0.0, 0.0, 0.0), box_size * 0.9),
-        //             Transform::from_translation(box_position.extend(3.0)),
-        //             Portrait,
-        //             DatingObj,
-        //         ))
-        //         .with_children(|builder| {
-        //             builder.spawn((portrait, Transform::from_translation(Vec3::Z)));
-        //         });
     }
 
     let text_justification = JustifyText::Center;
@@ -379,7 +375,7 @@ fn on_chill(
             let scene = format!("Day{day}Morning");
 
             // if DayNPlayed == 1, set scene to DayNMorning
-            if context.flags.get(&played) != Some(&1) {
+            if context.get_flag(&played) != 1 {
                 context.set_scene(&scene);
                 tmp.set(DatingState::Talking);
             }
@@ -455,6 +451,7 @@ fn start_talking(
     query: Query<&mut Transform, With<Cursor>>,
     asset_server: Res<AssetServer>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
+    mut background: Single<&mut Sprite, With<Background>>,
 ) {
     let window = windows.single();
     let width = window.resolution.width();
@@ -477,6 +474,13 @@ fn start_talking(
     let talk_position = Vec2::new(width / 8.0, -height / 2.7);
 
     let text = &context.selected_scene.text;
+
+    let mut background = background.into_inner();
+    if context.selected_scene.black {
+        background.color = Color::srgba(0.0, 0.0, 0.0, 1.0);
+    } else {
+        background.color = Color::srgba(1.0, 1.0, 1.0, 1.0);
+    }
 
     let first = text.first().cloned().unwrap_or((None, String::new()));
 
@@ -509,7 +513,7 @@ fn start_talking(
         });
 
     //Who is talking
-    if let Some(real_preson) = person {
+    if let Some(real_person) = person {
         commands
             .spawn((
                 Sprite {
@@ -525,7 +529,7 @@ fn start_talking(
             ))
             .with_children(|builder| {
                 builder.spawn((
-                    Text2d::new(format!("{:?}", real_preson)),
+                    Text2d::new(format!("{:?}", real_person)),
                     TextColor(Color::srgb(0.0, 0.0, 0.0)),
                     NameBox,
                     slightly_smaller_text_font.clone(),
@@ -540,7 +544,7 @@ fn start_talking(
         //Look at sexy person talking
         commands.spawn((
             get_portrait(
-                real_preson,
+                real_person,
                 Vec2::new(width / 2.0, width / 2.0),
                 &asset_server,
                 context.flags.clone(),
@@ -576,6 +580,7 @@ fn on_choosing(
         ..default()
     };
 
+    // TODO fix option positioning
     let option_size = Vec2::new(width / 2.0, height / 5.0);
     let option_position_1 = Vec2::new(0.0, height / 4.0);
     let option_position_2 = Vec2::new(0.0, -height / 4.0);
@@ -620,9 +625,6 @@ fn choose_move(
     mut tmp: ResMut<NextState<DatingState>>,
     windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
-    // Consider changing font-size instead of scaling the transform. Scaling a Text2D will scale the
-    // rendered quad, resulting in a pixellated look.
-
     let down = keyboard_input.just_pressed(KeyCode::KeyS)
         || keyboard_input.just_pressed(KeyCode::ArrowDown);
     let up =
@@ -886,6 +888,7 @@ fn follow_mouse(
         transform.translation = position.extend(0.0);
     }
 }
+
 fn cursor_action(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
